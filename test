@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -ue
+
+years=$(ls correct)
+if [ -z "$years" ]; then
+	exit 2
+fi
+for year in $years; do
+	for day in $(seq -f '%02g' 25); do
+		correct="correct/${year}/${day}.txt"
+		if [ -f "$correct" ]; then
+			output=$(./run $year $day 2> /dev/null)
+			expect=$(cat "$correct")
+			echo $year $day
+			echo output: $output
+			echo expect: $expect
+			if [ "$output" != "$expect" ]; then
+				exit 1
+			fi
+			echo
+		fi
+	done
+done
