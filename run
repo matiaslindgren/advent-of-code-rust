@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+set -ue
+
+export AOC_WORKDIR=$(pwd)
+(cd util; cargo run --release $@)
