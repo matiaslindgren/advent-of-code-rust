@@ -1,0 +1,23 @@
+name: rust
+
+on:
+  push:
+    branches: main
+    paths-ignore: '*.md'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: rust-toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+    - name: run test
+      run: ./test

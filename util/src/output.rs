@@ -1,5 +1,3 @@
-use aoc;
-
 pub fn get(input: &str, year: u32, day: u32) -> String {
     // TODO macro
     match (year, day) {
