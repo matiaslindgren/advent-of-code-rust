@@ -20,12 +20,6 @@ jobs:
           override: true
           components: rustfmt, clippy
     - name: run util lint
-      run:
-        - cd util
-        - cargo check
-        - cargo clippy
+      run: cd util && cargo check && cargo clippy
     - name: run solutions lint
-      run:
-        - cd aoc
-        - cargo check
-        - cargo clippy
+      run: cd aoc && cargo check && cargo clippy
