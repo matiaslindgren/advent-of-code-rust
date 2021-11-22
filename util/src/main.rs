@@ -1,5 +1,5 @@
 mod io;
-mod output;
+mod solutions;
 
 use std::env::args;
 
@@ -22,7 +22,7 @@ fn main() {
     let year = parse(1, true);
     let day = parse(2, true);
     let input = io::get(year, day);
-    let output = output::get(&input, year, day);
+    let output = solutions::solve(&input, year, day);
     println!("{}", output);
     let level = parse(3, false);
     match level {

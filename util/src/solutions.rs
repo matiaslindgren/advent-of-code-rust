@@ -1,4 +1,4 @@
-pub fn get(input: &str, year: u32, day: u32) -> String {
+pub fn solve(input: &str, year: u32, day: u32) -> String {
     // TODO macro
     match (year, day) {
         (2019, 1) => aoc::y2019::d01::main(input),
