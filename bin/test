@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 set -ue
 
-(cd util; cargo check)
-(cd util; cargo clippy)
-(cd aoc; cargo check)
-(cd aoc; cargo clippy)
+for dir in util aoc; do
+	for tool in check clippy; do
+		(cd $dir; cargo --quiet $tool)
+	done
+done
 
 years=$(ls correct)
 if [ -z "$years" ]; then
