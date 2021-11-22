@@ -5,7 +5,7 @@ pub fn main(input: &str) -> String {
     format!("{} {}", find_a(&v), find_b(&v))
 }
 
-fn find_a(v: &Vec<u32>) -> u32 {
+fn find_a(v: &[u32]) -> u32 {
     for x in v.iter() {
         for y in v.iter() {
             if x + y == 2020 {
@@ -16,7 +16,7 @@ fn find_a(v: &Vec<u32>) -> u32 {
     0
 }
 
-fn find_b(v: &Vec<u32>) -> u32 {
+fn find_b(v: &[u32]) -> u32 {
     for x in v.iter() {
         for y in v.iter() {
             for z in v.iter() {

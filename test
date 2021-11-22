@@ -3,6 +3,8 @@ set -ue
 
 (cd util; cargo check)
 (cd util; cargo clippy)
+(cd aoc; cargo check)
+(cd aoc; cargo clippy)
 
 years=$(ls correct)
 if [ -z "$years" ]; then
