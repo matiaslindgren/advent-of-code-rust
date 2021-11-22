@@ -16,12 +16,12 @@ for year in $years; do
 		correct="correct/${year}/${day}.txt"
 		module="aoc/src/y${year}/d${day}"
 		if [ -f "$correct" -a -d "$module" ]; then
-			output=$(cd util; cargo run --quiet --release $year $day)
-			expect=$(cat "$correct")
-			echo
 			echo "$year $day"
+			output=$(cd util; time cargo run --quiet --release $year $day)
+			expect=$(cat "$correct")
 			echo "output: $output"
 			echo "expect: $expect"
+			echo
 			if [ "$output" != "$expect" ]; then
 				exit 1
 			fi
