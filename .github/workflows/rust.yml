@@ -21,6 +21,6 @@ jobs:
           components: rustfmt, clippy
     - name: run lint
       run:
-        - export AOC_WORKDIR=$(pwd)
-        - (cd util; cargo check)
-        - (cd util; cargo clippy)
+        - cd util
+        - cargo check
+        - cargo clippy

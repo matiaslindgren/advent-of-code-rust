@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -ue
 
-export AOC_WORKDIR=$(pwd)
-
 (cd util; cargo check)
 (cd util; cargo clippy)
 

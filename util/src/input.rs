@@ -6,12 +6,12 @@ const AOC_URL: &str = "https://adventofcode.com";
 fn get_workdir() -> String {
     match env::var("AOC_WORKDIR") {
         Ok(dir) => dir,
-        Err(e) => panic!("unable to get env var AOC_WORKDIR: {}", e),
+        Err(_) => ".".to_owned(),
     }
 }
 
 fn read_session_token() -> String {
-    let path: PathBuf = [&get_workdir(), "util", "session_token"].iter().collect();
+    let path: PathBuf = [&get_workdir(), "session_token"].iter().collect();
     match fs::read_to_string(&path) {
         Ok(token) => token,
         Err(e) => panic!("failed to read session token from {:?}: {}", path, e),
@@ -49,7 +49,7 @@ fn get_from_aoc(url: &str) -> String {
 }
 
 pub fn get(year: u32, day: u32) -> String {
-    let input_dir: PathBuf = [&get_workdir(), "input", &format!("{}", year)]
+    let input_dir: PathBuf = [&get_workdir(), "..", "input", &format!("{}", year)]
         .iter()
         .collect();
     if !input_dir.is_dir() {
