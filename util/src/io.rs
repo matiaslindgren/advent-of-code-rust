@@ -45,7 +45,7 @@ fn get_from_aoc(url: &str) -> String {
     response.text().expect("failed parsing response to GET")
 }
 
-fn parse_feedback(s: &str) -> &str {
+fn parse_feedback(s: &str) -> (String, bool) {
     let main_begin = match s.find("<main>") {
         Some(i) => i + "<main>".len(),
         None => 0,
@@ -54,18 +54,21 @@ fn parse_feedback(s: &str) -> &str {
         Some(i) => i,
         None => s.len(),
     };
-    &s[main_begin..main_end]
+    let feedback = &s[main_begin..main_end];
+    (
+        feedback.to_owned(),
+        feedback.to_lowercase().contains("that's the right answer"),
+    )
 }
 
-fn post_to_aoc(url: &str, level: u32, answer: &str) -> String {
+fn post_to_aoc(url: &str, level: u32, answer: &str) -> (String, bool) {
     let client = build_client();
     let form = [("answer", answer), ("level", &format!("{}", level))];
     let response = match client.post(url).form(&form).send() {
         Ok(res) => res,
         Err(e) => panic!("failed POSTing answer to {:?}: {}", url, e),
     };
-    let feedback = response.text().expect("failed parsing response to POST");
-    parse_feedback(&feedback).to_owned()
+    parse_feedback(&response.text().expect("failed parsing response to POST"))
 }
 
 pub fn get(year: u32, day: u32) -> String {
@@ -105,8 +108,8 @@ pub fn post(year: u32, day: u32, level: u32, answers: &str) {
         "POSTing year {} day {} level {} answer {} to {}",
         year, day, level, answer, url
     );
-    let feedback = post_to_aoc(&url, level, answer);
-    if !feedback.to_lowercase().contains("that's the right answer") {
+    let (feedback, is_wrong) = post_to_aoc(&url, level, answer);
+    if is_wrong {
         eprintln!("{}", feedback);
         return;
     }
