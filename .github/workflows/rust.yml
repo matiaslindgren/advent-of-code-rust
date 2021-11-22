@@ -19,5 +19,8 @@ jobs:
           toolchain: nightly
           override: true
           components: rustfmt, clippy
-    - name: run test
-      run: ./test
+    - name: run lint
+      run:
+        - export AOC_WORKDIR=$(pwd)
+        - (cd util; cargo check)
+        - (cd util; cargo clippy)
