@@ -2,7 +2,9 @@ use crate::common;
 
 pub fn main(input: &str) -> String {
     let v = common::numbers::<u32>(input, ",");
-    format!("{} {}", find_a(&v), find_b(&v))
+    let a = find_a(&v);
+    let b = find_b(&v);
+    format!("{} {}", a, b)
 }
 
 fn find_a(_v: &[u32]) -> u32 {
