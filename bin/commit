@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -ue
 
+if [ $# -ne 2 ]; then
+	echo usage: $0 year day
+	exit 2
+fi
+
 year=$1
 day=$(printf '%02d' $2)
 tag=${year}-${day}
 
-git add aoc/src {input,correct}/${year}/${day}.txt util/src/output.rs
-git commit -m "add $tag"
-git tag -a $tag
+git add aoc/src {input,correct}/${year}/${day}.txt util/src/solutions.rs
+git commit -m "solve $tag"
+git tag -a $tag -m "$tag"

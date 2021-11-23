@@ -57,7 +57,7 @@ fn parse_feedback(s: &str) -> (String, bool) {
     let feedback = &s[main_begin..main_end];
     (
         feedback.to_owned(),
-        feedback.to_lowercase().contains("that's the right answer"),
+        !feedback.to_lowercase().contains("that's the right answer"),
     )
 }
 
