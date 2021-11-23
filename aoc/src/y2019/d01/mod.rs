@@ -1,28 +1,26 @@
 use crate::common;
 
 pub fn main(input: &str) -> String {
-    let v = common::numbers::<u32>(input, "\n");
-    format!("{} {}", find_a(&v), find_b(&v))
+    let v = common::numbers::<i32>(input, "\n");
+    let a = find_a(&v);
+    let b = find_b(&v);
+    format!("{} {}", a, b)
 }
 
-fn find_a(v: &[u32]) -> u32 {
-    let mut s: u32 = 0;
-    for x in v.iter() {
-        s += x / 3 - 2;
-    }
-    s
+fn find_a(v: &[i32]) -> i32 {
+    v.iter().fold(0, |s, x| s + x / 3 - 2)
 }
 
-fn find_b(v: &[u32]) -> u32 {
-    let mut s: u32 = 0;
-    for x in v.iter() {
-        let mut y = x.to_owned() as i32;
+fn find_b(v: &[i32]) -> i32 {
+    let mut s = 0;
+    for &x in v {
+        let mut y = x;
         loop {
             y = y / 3 - 2;
             if y < 0 {
                 break;
             }
-            s += y as u32;
+            s += y;
         }
     }
     s
