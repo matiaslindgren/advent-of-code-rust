@@ -2,7 +2,9 @@ use crate::common;
 
 pub fn main(input: &str) -> String {
     let v = common::numbers::<usize>(input, ",");
-    format!("{} {}", find_a(&mut v.clone(), 12, 2), find_b(&v))
+    let a = find_a(&mut v.clone(), 12, 2);
+    let b = find_b(&v);
+    format!("{} {}", a, b)
 }
 
 fn find_a(v: &mut [usize], noun: usize, verb: usize) -> usize {
