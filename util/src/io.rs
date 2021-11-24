@@ -91,7 +91,7 @@ pub fn get(year: u32, day: u32) -> String {
         }
     }
     match fs::read_to_string(&path) {
-        Ok(input) => input,
+        Ok(input) => input.trim().to_owned(),
         Err(e) => panic!("failed to read input from {:?}: {}", path, e),
     }
 }
