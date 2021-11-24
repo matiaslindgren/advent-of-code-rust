@@ -26,6 +26,7 @@ pub mod y2019 {
     pub mod d23;
     pub mod d24;
     pub mod d25;
+    pub mod intcode;
 }
 
 pub mod y2020 {
