@@ -50,11 +50,11 @@ fn parse_feedback(s: &str) -> (String, bool) {
         Some(i) => i + "<main>".len(),
         None => 0,
     };
-    let main_end = match s.find("</main>") {
+    let main_len = match s[main_begin..].find("</main>") {
         Some(i) => i,
         None => s.len(),
     };
-    let feedback = &s[main_begin..main_end];
+    let feedback = &s[main_begin..main_begin + main_len];
     (
         feedback.to_owned(),
         !feedback.to_lowercase().contains("that's the right answer"),
