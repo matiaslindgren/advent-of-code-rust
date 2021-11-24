@@ -30,7 +30,7 @@ where
 
 pub fn decimal_digits(x: &usize) -> Vec<usize> {
     let mut digits = Vec::<usize>::new();
-    let mut x = x.clone();
+    let mut x = *x;
     while x > 0 {
         digits.push(x % 10);
         x /= 10;
