@@ -55,10 +55,8 @@ fn parse_feedback(s: &str) -> (String, bool) {
         None => s.len(),
     };
     let feedback = &s[main_begin..main_begin + main_len];
-    (
-        feedback.to_owned(),
-        !feedback.to_lowercase().contains("that's the right answer"),
-    )
+    let is_wrong = !feedback.to_lowercase().contains("that's the right answer");
+    (feedback.to_owned(), is_wrong)
 }
 
 fn post_to_aoc(url: &str, level: u32, answer: &str) -> (String, bool) {
