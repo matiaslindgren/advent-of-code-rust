@@ -27,3 +27,14 @@ where
         .filter_map(|x| str::parse::<Distance>(&x[label_len..]).ok());
     labels.zip(distances).collect()
 }
+
+pub fn decimal_digits(x: &usize) -> Vec<usize> {
+    let mut digits = Vec::<usize>::new();
+    let mut x = x.clone();
+    while x > 0 {
+        digits.push(x % 10);
+        x /= 10;
+    }
+    digits.reverse();
+    digits
+}
