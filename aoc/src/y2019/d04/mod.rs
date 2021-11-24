@@ -16,17 +16,13 @@ pub fn main(input: &str) -> String {
                 has_two = true;
                 repeats += 1;
             } else {
-                if repeats == 2 {
-                    has_two_once = true;
-                }
+                has_two_once |= repeats == 2;
                 repeats = 1;
             }
             is_monotonic &= prev <= d;
             prev = d;
         }
-        if repeats == 2 {
-            has_two_once = true;
-        }
+        has_two_once |= repeats == 2;
         a += (has_two && is_monotonic) as usize;
         b += (has_two_once && is_monotonic) as usize;
     }
