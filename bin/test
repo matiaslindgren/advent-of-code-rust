@@ -2,7 +2,8 @@
 set -ue
 
 for dir in util aoc; do
-	for tool in check clippy; do
+	for tool in check 'clippy -- --deny warnings'; do
+		echo $tool
 		(cd $dir; cargo --quiet $tool)
 	done
 done
