@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -ue
+for dir in util aoc; do
+	for tool in check 'clippy -- --deny warnings'; do
+		(cd $dir; cargo --quiet $tool)
+	done
+done
