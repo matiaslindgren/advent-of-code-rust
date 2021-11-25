@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -xue
+set -ue
 
 years=$(ls correct)
 if [ -z "$years" ]; then
@@ -30,6 +30,10 @@ if [ $# -eq 2 ]; then
 fi
 
 ./bin/lint
+
+for dir in util aoc; do
+	(cd $dir; cargo --quiet test)
+done
 
 for year in $years; do
 	for day in $(seq 25); do

@@ -8,10 +8,11 @@ pub fn main(input: &str) -> String {
 }
 
 fn find_a(v: &[String], noun: usize, verb: usize) -> String {
-    let mut mem = v.to_vec();
-    mem[1] = format!("{}", noun);
-    mem[2] = format!("{}", verb);
-    intcode::run(&mut mem, &vec![])
+    let mut input = v.to_vec();
+    input[1] = format!("{}", noun);
+    input[2] = format!("{}", verb);
+    let (mem, _) = intcode::run(&input, &[]);
+    mem[0].to_owned()
 }
 
 fn find_b(v: &[String]) -> usize {
