@@ -1,28 +1,38 @@
 #!/usr/bin/env bash
 set -ue
 
-./bin/lint
-
-
 years=$(ls correct)
 if [ -z "$years" ]; then
 	exit 2
 fi
 
-for year in $years; do
-	for day in $(seq -f '%02g' 25); do
-		correct="correct/${year}/${day}.txt"
-		module="aoc/src/y${year}/d${day}"
-		if [ -f "$correct" -a -d "$module" ]; then
-			echo "$year $day"
-			output=$(cd util; time cargo run --quiet --release $year $day)
-			expect=$(cat "$correct")
-			echo "output: $output"
-			echo "expect: $expect"
-			echo
-			if [ "$output" != "$expect" ]; then
-				exit 1
-			fi
+function test_solution {
+	year=$1
+	day=$(printf '%02d' $2)
+	correct="correct/${year}/${day}.txt"
+	module="aoc/src/y${year}/d${day}"
+	if [ -f "$correct" -a -d "$module" ]; then
+		echo "$year $day"
+		output=$(cd util; time cargo run --quiet --release $year $day)
+		expect=$(cat "$correct")
+		echo "output: $output"
+		echo "expect: $expect"
+		echo
+		if [ "$output" != "$expect" ]; then
+			exit 1
 		fi
+	fi
+}
+
+if [ $# -eq 2 ]; then
+	test_solution $1 $2
+	exit 0
+fi
+
+./bin/lint
+
+for year in $years; do
+	for day in $(seq 25); do
+		test_solution $year $day
 	done
 done
