@@ -47,6 +47,12 @@ impl Graph {
     }
 }
 
+impl Default for Graph {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl From<&Vec<(Key, Value)>> for Graph {
     fn from(adjacencies: &Vec<(Key, Value)>) -> Self {
         let mut g = Self::new();

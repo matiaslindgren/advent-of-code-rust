@@ -21,8 +21,9 @@ where
     input
         .lines()
         .map(|line| {
-            let a = line.split(line_sep).nth(0);
-            let b = line.split(line_sep).nth(1);
+            let mut parts = line.split(line_sep);
+            let a = parts.next();
+            let b = parts.next();
             (a.unwrap(), b.unwrap())
         })
         .map(|(a, b)| {
