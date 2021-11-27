@@ -1,13 +1,14 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-pub fn numbers<T>(input: &str, sep: &str) -> Vec<T>
+pub fn items<T>(input: &str, sep: &str) -> Vec<T>
 where
     T: FromStr,
+    <T as FromStr>::Err: Debug,
 {
     input
         .split(sep)
-        .filter_map(|x| str::parse::<T>(x).ok())
+        .map(|x| str::parse::<T>(x).unwrap())
         .collect()
 }
 

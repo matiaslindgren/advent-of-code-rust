@@ -1,7 +1,7 @@
 use crate::common;
 
 pub fn main(input: &str) -> String {
-    let v = common::numbers::<usize>(input, "-");
+    let v = common::items::<usize>(input, "-");
     let mut a = 0;
     let mut b = 0;
     for x in v[0]..=v[1] {

@@ -1,7 +1,7 @@
 use crate::common;
 
 pub fn main(input: &str) -> String {
-    let v = common::numbers::<u32>(input, "\n");
+    let v = common::items::<u32>(input, "\n");
     format!("{} {}", find_a(&v), find_b(&v))
 }
 
