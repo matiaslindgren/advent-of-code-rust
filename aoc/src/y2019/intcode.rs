@@ -1,4 +1,5 @@
-use crate::debug;
+use std::num::ParseIntError;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
 enum Op {
@@ -13,149 +14,157 @@ enum Op {
     Break,
 }
 
-fn parse_opcode(input: &str) -> (Op, Vec<u8>) {
-    let (modes_str, op_str) = input.split_at(input.len().max(2) - 2);
-    let op = match op_str.parse::<u8>().expect("failed parsing opcode") {
-        1 => Op::Add,
-        2 => Op::Mul,
-        3 => Op::Input,
-        4 => Op::Output,
-        5 => Op::JumpTrue,
-        6 => Op::JumpFalse,
-        7 => Op::Less,
-        8 => Op::Equal,
-        99 => Op::Break,
-        _ => panic!("unknown op code {}", op_str),
-    };
-    let mut modes: Vec<u8> = modes_str.chars().map(|x| (x as u8) - 48).rev().collect();
-    modes.resize(4, 0);
-    (op, modes)
-}
-
-fn load(mem: &[String], i: usize, mode: u8) -> i64 {
-    debug!("load mem[{}]({}) m{}", i, mem[i], mode);
-    let mut x = mem[i].parse::<i64>().expect("failed parsing element");
-    if mode == 0 {
-        assert!(x >= 0, "{}", x);
-        x = load(mem, x as usize, 1);
+impl FromStr for Op {
+    type Err = ParseIntError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.parse::<u8>().unwrap() {
+            1 => Ok(Op::Add),
+            2 => Ok(Op::Mul),
+            3 => Ok(Op::Input),
+            4 => Ok(Op::Output),
+            5 => Ok(Op::JumpTrue),
+            6 => Ok(Op::JumpFalse),
+            7 => Ok(Op::Less),
+            8 => Ok(Op::Equal),
+            99 => Ok(Op::Break),
+            _ => panic!("unknown op code {}", s),
+        }
     }
-    x
 }
 
-fn store(mem: &mut [String], i: i64, value: i64) {
-    debug!("store mem[{}]({}) := {}", i, mem[i as usize], value);
-    mem[i as usize] = format!("{}", value);
+pub struct IntCode {
+    inputs: Vec<i64>,
+    output: Option<i64>,
+    terminated: bool,
+    memory: Vec<String>,
+    i_ins: usize,
+    i_inp: usize,
 }
 
-#[cfg(debug_assertions)]
-fn dump_memory(mem: &[String]) -> String {
-    mem.iter()
-        .enumerate()
-        .map(|(line, instr)| format!("{:>3}:{:>6}", line, instr))
-        .collect::<Vec<String>>()
-        .join("\n")
-}
+impl IntCode {
+    pub fn new(program: &str, inputs: &[i64]) -> Self {
+        Self {
+            memory: program
+                .split(',')
+                .map(str::to_owned)
+                .collect::<Vec<String>>()
+                .to_vec(),
+            inputs: inputs.to_vec(),
+            output: None,
+            terminated: false,
+            i_ins: 0,
+            i_inp: 0,
+        }
+    }
 
-pub fn run(program: &str, inputs: &[i64]) -> (String, i64) {
-    let mut mem = program
-        .split(',')
-        .map(str::to_owned)
-        .collect::<Vec<String>>()
-        .to_vec();
-    debug!("{}", dump_memory(&mem));
-    let mut output = 0;
-    let mut i_ins = 0;
-    let mut i_inp = 0;
-    loop {
-        let (op, modes) = parse_opcode(&mem[i_ins]);
-        debug!("{}: op {:?} modes {:?}", i_ins, op, modes);
-        i_ins += 1;
+    pub fn mode_load(&self, i: usize, mode: u8) -> i64 {
+        match mode {
+            0 => self.load(self.mode_load(i, 1) as usize),
+            1 => self.load(i),
+            _ => panic!("load failed, unknown mode {}", mode),
+        }
+    }
+
+    pub fn load(&self, i: usize) -> i64 {
+        let x_str = &self.memory[i];
+        match x_str.parse::<i64>() {
+            Ok(x) => x,
+            Err(e) => panic!("load failed for {}: {}", x_str, e),
+        }
+    }
+
+    pub fn store(&mut self, i: usize, x: i64) {
+        self.memory[i] = format!("{}", x);
+    }
+
+    #[cfg(debug_assertions)]
+    pub fn dump_memory(&self) -> String {
+        self.memory
+            .iter()
+            .enumerate()
+            .map(|(line, instr)| format!("{:>3}:{:>6}", line, instr))
+            .collect::<Vec<String>>()
+            .join("\n")
+    }
+
+    fn next_instruction(&self, instr: &str) -> (Op, Vec<u8>) {
+        let (modes_str, op_str) = instr.split_at(instr.len().max(2) - 2);
+        let op = Op::from_str(op_str).unwrap();
+        let mut modes: Vec<u8> = modes_str.chars().map(|x| (x as u8) - 48).rev().collect();
+        modes.resize(4, 0);
+        (op, modes)
+    }
+
+    pub fn is_terminated(&self) -> bool {
+        self.terminated
+    }
+
+    pub fn read_output(&self) -> i64 {
+        match self.output {
+            Some(o) => o,
+            None => panic!("there is no output"),
+        }
+    }
+
+    pub fn run_until_end(program: &str, inputs: &[i64]) -> i64 {
+        let mut code = Self::new(program, inputs);
+        while !code.is_terminated() {
+            code.step();
+        }
+        code.read_output()
+    }
+
+    pub fn step(&mut self) {
+        let (op, modes) = self.next_instruction(&self.memory[self.i_ins]);
+        self.i_ins += 1;
         match op {
             Op::Add | Op::Mul => {
-                let x1 = load(&mem, i_ins, modes[0]);
-                i_ins += 1;
-                let x2 = load(&mem, i_ins, modes[1]);
-                i_ins += 1;
+                let x1 = self.mode_load(self.i_ins, modes[0]);
+                self.i_ins += 1;
+                let x2 = self.mode_load(self.i_ins, modes[1]);
+                self.i_ins += 1;
                 let r = match op {
                     Op::Add => x1 + x2,
                     Op::Mul => x1 * x2,
                     _ => 0,
                 };
-                let pos = load(&mem, i_ins, 1);
-                i_ins += 1;
-                store(&mut mem, pos, r);
+                let pos = self.load(self.i_ins);
+                self.i_ins += 1;
+                self.store(pos as usize, r);
             }
             Op::Input => {
-                let pos = load(&mem, i_ins, 1);
-                i_ins += 1;
-                let inp = inputs[i_inp];
-                i_inp += 1;
-                store(&mut mem, pos, inp);
+                let pos = self.load(self.i_ins);
+                self.i_ins += 1;
+                let r = self.inputs[self.i_inp];
+                self.i_inp += 1;
+                self.store(pos as usize, r);
             }
             Op::Output => {
-                output = load(&mem, i_ins, modes[0]);
-                i_ins += 1;
-                debug!("output {:?}", output);
+                self.output = Some(self.mode_load(self.i_ins, modes[0]));
+                self.i_ins += 1;
             }
             Op::JumpTrue | Op::JumpFalse => {
-                let x1 = load(&mem, i_ins, modes[0]);
-                i_ins += 1;
-                let jump = (op == Op::JumpTrue && x1 != 0) || (op == Op::JumpFalse && x1 == 0);
-                if jump {
-                    let x2 = load(&mem, i_ins, modes[1]);
-                    i_ins = x2 as usize;
+                let flag = self.mode_load(self.i_ins, modes[0]) != 0;
+                self.i_ins += 1;
+                if (op == Op::JumpTrue && flag) || (op == Op::JumpFalse && !flag) {
+                    self.i_ins = self.mode_load(self.i_ins, modes[1]) as usize;
                 } else {
-                    i_ins += 1;
+                    self.i_ins += 1;
                 }
             }
             Op::Less | Op::Equal => {
-                let x1 = load(&mem, i_ins, modes[0]);
-                i_ins += 1;
-                let x2 = load(&mem, i_ins, modes[1]);
-                i_ins += 1;
-                let pos = load(&mem, i_ins, 1);
-                i_ins += 1;
+                let x1 = self.mode_load(self.i_ins, modes[0]);
+                self.i_ins += 1;
+                let x2 = self.mode_load(self.i_ins, modes[1]);
+                self.i_ins += 1;
+                let pos = self.load(self.i_ins);
+                self.i_ins += 1;
                 let r = (op == Op::Less && x1 < x2) || (op == Op::Equal && x1 == x2);
-                store(&mut mem, pos, r as i64);
+                self.store(pos as usize, r as i64);
             }
-            Op::Break => break,
+            Op::Break => {
+                self.terminated = true;
+            }
         };
     }
-    (mem[0].to_owned(), output)
-}
-
-#[test]
-fn test_parse_opcode_only() {
-    let op_str_list = vec!["1", "01", "2", "02", "99"];
-    let expected_ops = vec![Op::Add, Op::Add, Op::Mul, Op::Mul, Op::Break];
-    for (op_str, expect_op) in op_str_list.iter().zip(expected_ops) {
-        let (op, modes) = parse_opcode(op_str);
-        assert_eq!(op, expect_op);
-        assert_eq!(modes.len(), 4);
-        for m in modes {
-            assert_eq!(m, 0);
-        }
-    }
-}
-
-#[test]
-fn test_parse_opcode_modes1() {
-    let (op, modes) = parse_opcode("11199");
-    assert_eq!(op, Op::Break);
-    assert_eq!(modes.len(), 4);
-    assert_eq!(modes[0], 1);
-    assert_eq!(modes[1], 1);
-    assert_eq!(modes[2], 1);
-    assert_eq!(modes[3], 0);
-}
-
-#[test]
-fn test_parse_opcode_modes2() {
-    let (op, modes) = parse_opcode("1001");
-    assert_eq!(op, Op::Add);
-    assert_eq!(modes.len(), 4);
-    assert_eq!(modes[0], 0);
-    assert_eq!(modes[1], 1);
-    assert_eq!(modes[2], 0);
-    assert_eq!(modes[3], 0);
 }

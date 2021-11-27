@@ -1,7 +1,7 @@
-use crate::y2019::intcode;
+use crate::y2019::intcode::IntCode;
 
 pub fn main(input: &str) -> String {
-    let (_, a) = intcode::run(input, &[1]);
-    let (_, b) = intcode::run(input, &[5]);
+    let a = IntCode::run_until_end(input, &[1]);
+    let b = IntCode::run_until_end(input, &[5]);
     format!("{} {}", a, b)
 }
