@@ -1,21 +1,17 @@
-use std::collections::{hash_map::Keys, HashMap};
+use std::collections::HashMap;
 
 type Key = String;
 type Value = String;
 type Values = Vec<Value>;
 
 pub struct Graph {
-    g: HashMap<Key, Values>,
+    pub g: HashMap<Key, Values>,
 }
 
 impl Graph {
     pub fn new() -> Self {
         let g = HashMap::<Key, Values>::new();
         Self { g }
-    }
-
-    pub fn keys(&self) -> Keys<Key, Values> {
-        self.g.keys()
     }
 
     pub fn insert(&mut self, key: &str, val: &str) {

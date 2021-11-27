@@ -9,11 +9,11 @@ pub fn main(input: &str) -> String {
 }
 
 fn find_a(orbits: &graph::Graph) -> usize {
-    orbits.keys().fold(0, |n, k| n + orbits.count_children(k))
+    orbits.g.keys().fold(0, |n, k| n + orbits.count_children(k))
 }
 
 fn find_b(orbits: &graph::Graph) -> usize {
-    orbits.keys().fold(usize::MAX, |dist_orbital, obj| {
+    orbits.g.keys().fold(usize::MAX, |dist_orbital, obj| {
         let obj2you = orbits.distance(obj, "YOU");
         let obj2san = orbits.distance(obj, "SAN");
         if obj2you < usize::MAX - 1 && obj2san < usize::MAX - 1 {
