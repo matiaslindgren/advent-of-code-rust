@@ -93,7 +93,9 @@ impl IntCode {
             .join("\n")
     }
 
-    fn next_instruction(&self, instr: &str) -> (Op, Vec<u8>) {
+    fn next_instruction(&mut self) -> (Op, Vec<u8>) {
+        let instr = &self.memory[self.i_ins];
+        self.i_ins += 1;
         let (modes_str, op_str) = instr.split_at(instr.len().max(2) - 2);
         let op = Op::from_str(op_str).unwrap();
         let mut modes: Vec<u8> = modes_str.chars().map(|x| (x as u8) - 48).rev().collect();
@@ -117,8 +119,7 @@ impl IntCode {
     }
 
     pub fn step(&mut self) {
-        let (op, modes) = self.next_instruction(&self.memory[self.i_ins]);
-        self.i_ins += 1;
+        let (op, modes) = self.next_instruction();
         match op {
             Op::Add | Op::Mul => {
                 let x1 = self.load_next(modes[0]);
