@@ -23,18 +23,28 @@ fn store(mem: &mut [String], i: i64, value: i64) {
     mem[i as usize] = format!("{}", value);
 }
 
+#[cfg(debug_assertions)]
+fn dump_memory(mem: &[String]) -> String {
+    mem.iter()
+        .enumerate()
+        .map(|(line, instr)| format!("{:>3}:{:>6}", line, instr))
+        .collect::<Vec<String>>()
+        .join("\n")
+}
+
 pub fn run(program: &str, inputs: &[i64]) -> (String, i64) {
     let mut mem = program
         .split(',')
         .map(str::to_owned)
         .collect::<Vec<String>>()
         .to_vec();
+    debug!("{}", dump_memory(&mem));
     let mut output = 0;
     let mut i_ins = 0;
     let mut i_inp = 0;
     loop {
         let (op, modes) = parse_opcode(&mem[i_ins]);
-        debug!("op {} modes {:?}", op, modes);
+        debug!("{}: op {} modes {:?}", i_ins, op, modes);
         i_ins += 1;
         match op {
             1 | 2 => {
@@ -42,7 +52,6 @@ pub fn run(program: &str, inputs: &[i64]) -> (String, i64) {
                 i_ins += 1;
                 let x2 = load(&mem, i_ins, modes[1]);
                 i_ins += 1;
-                debug!("exec {} ({}) {}", x1, op, x2);
                 let r = match op {
                     1 => x1 + x2,
                     2 => x1 * x2,
@@ -56,7 +65,6 @@ pub fn run(program: &str, inputs: &[i64]) -> (String, i64) {
                 let pos = load(&mem, i_ins, 1);
                 i_ins += 1;
                 let inp = inputs[i_inp];
-                debug!("exec {} {} := {}", op, pos, inp);
                 i_inp += 1;
                 store(&mut mem, pos, inp);
             }
@@ -68,9 +76,12 @@ pub fn run(program: &str, inputs: &[i64]) -> (String, i64) {
             5 | 6 => {
                 let x1 = load(&mem, i_ins, modes[0]);
                 i_ins += 1;
+                debug!("jmpif {} {}", op, x1);
                 if (op == 5 && x1 != 0) || (op == 6 && x1 == 0) {
                     let x2 = load(&mem, i_ins, modes[1]);
                     i_ins = x2 as usize;
+                } else {
+                    i_ins += 1;
                 }
             }
             7 | 8 => {
@@ -78,7 +89,7 @@ pub fn run(program: &str, inputs: &[i64]) -> (String, i64) {
                 i_ins += 1;
                 let x2 = load(&mem, i_ins, modes[1]);
                 i_ins += 1;
-                let pos = load(&mem, i_ins, modes[2]);
+                let pos = load(&mem, i_ins, 1);
                 i_ins += 1;
                 let r = (op == 7 && x1 < x2) || (op == 8 && x1 == x2);
                 store(&mut mem, pos, r as i64);
