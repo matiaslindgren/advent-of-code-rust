@@ -11,7 +11,7 @@ enum Op {
     JumpFalse,
     Less,
     Equal,
-    Break,
+    End,
 }
 
 impl FromStr for Op {
@@ -26,7 +26,7 @@ impl FromStr for Op {
             6 => Ok(Op::JumpFalse),
             7 => Ok(Op::Less),
             8 => Ok(Op::Equal),
-            99 => Ok(Op::Break),
+            99 => Ok(Op::End),
             _ => panic!("unknown op code {}", s),
         }
     }
@@ -35,7 +35,7 @@ impl FromStr for Op {
 pub struct IntCode {
     inputs: Vec<i64>,
     output: Option<i64>,
-    terminated: bool,
+    pub terminated: bool,
     memory: Vec<String>,
     i_ins: usize,
     i_inp: usize,
@@ -57,19 +57,25 @@ impl IntCode {
         }
     }
 
-    pub fn mode_load(&self, i: usize, mode: u8) -> i64 {
-        match mode {
-            0 => self.load(self.mode_load(i, 1) as usize),
-            1 => self.load(i),
-            _ => panic!("load failed, unknown mode {}", mode),
-        }
-    }
-
     pub fn load(&self, i: usize) -> i64 {
         let x_str = &self.memory[i];
         match x_str.parse::<i64>() {
             Ok(x) => x,
             Err(e) => panic!("load failed for {}: {}", x_str, e),
+        }
+    }
+
+    pub fn load_next(&mut self, mode: u8) -> i64 {
+        let x = self.load_with_mode(self.i_ins, mode);
+        self.i_ins += 1;
+        x
+    }
+
+    fn load_with_mode(&self, i: usize, mode: u8) -> i64 {
+        match mode {
+            0 => self.load(self.load(i) as usize),
+            1 => self.load(i),
+            _ => panic!("load failed, unknown mode {}", mode),
         }
     }
 
@@ -95,10 +101,6 @@ impl IntCode {
         (op, modes)
     }
 
-    pub fn is_terminated(&self) -> bool {
-        self.terminated
-    }
-
     pub fn read_output(&self) -> i64 {
         match self.output {
             Some(o) => o,
@@ -108,7 +110,7 @@ impl IntCode {
 
     pub fn run_until_end(program: &str, inputs: &[i64]) -> i64 {
         let mut code = Self::new(program, inputs);
-        while !code.is_terminated() {
+        while !code.terminated {
             code.step();
         }
         code.read_output()
@@ -119,50 +121,41 @@ impl IntCode {
         self.i_ins += 1;
         match op {
             Op::Add | Op::Mul => {
-                let x1 = self.mode_load(self.i_ins, modes[0]);
-                self.i_ins += 1;
-                let x2 = self.mode_load(self.i_ins, modes[1]);
-                self.i_ins += 1;
+                let x1 = self.load_next(modes[0]);
+                let x2 = self.load_next(modes[1]);
                 let r = match op {
                     Op::Add => x1 + x2,
                     Op::Mul => x1 * x2,
                     _ => 0,
                 };
-                let pos = self.load(self.i_ins);
-                self.i_ins += 1;
+                let pos = self.load_next(1);
                 self.store(pos as usize, r);
             }
             Op::Input => {
-                let pos = self.load(self.i_ins);
-                self.i_ins += 1;
+                let pos = self.load_next(1);
                 let r = self.inputs[self.i_inp];
                 self.i_inp += 1;
                 self.store(pos as usize, r);
             }
             Op::Output => {
-                self.output = Some(self.mode_load(self.i_ins, modes[0]));
-                self.i_ins += 1;
+                self.output = Some(self.load_next(modes[0]));
             }
             Op::JumpTrue | Op::JumpFalse => {
-                let flag = self.mode_load(self.i_ins, modes[0]) != 0;
-                self.i_ins += 1;
+                let flag = self.load_next(modes[0]) != 0;
                 if (op == Op::JumpTrue && flag) || (op == Op::JumpFalse && !flag) {
-                    self.i_ins = self.mode_load(self.i_ins, modes[1]) as usize;
+                    self.i_ins = self.load_next(modes[1]) as usize;
                 } else {
                     self.i_ins += 1;
                 }
             }
             Op::Less | Op::Equal => {
-                let x1 = self.mode_load(self.i_ins, modes[0]);
-                self.i_ins += 1;
-                let x2 = self.mode_load(self.i_ins, modes[1]);
-                self.i_ins += 1;
-                let pos = self.load(self.i_ins);
-                self.i_ins += 1;
+                let x1 = self.load_next(modes[0]);
+                let x2 = self.load_next(modes[1]);
+                let pos = self.load_next(1);
                 let r = (op == Op::Less && x1 < x2) || (op == Op::Equal && x1 == x2);
                 self.store(pos as usize, r as i64);
             }
-            Op::Break => {
+            Op::End => {
                 self.terminated = true;
             }
         };
