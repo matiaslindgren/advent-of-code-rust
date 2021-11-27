@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::str::FromStr;
 
 pub fn numbers<T>(input: &str, sep: &str) -> Vec<T>
@@ -7,6 +8,28 @@ where
     input
         .split(sep)
         .filter_map(|x| str::parse::<T>(x).ok())
+        .collect()
+}
+
+pub fn pairs<A, B>(input: &str, line_sep: &str) -> Vec<(A, B)>
+where
+    A: FromStr,
+    B: FromStr,
+    <A as FromStr>::Err: Debug,
+    <B as FromStr>::Err: Debug,
+{
+    input
+        .lines()
+        .map(|line| {
+            let a = line.split(line_sep).nth(0);
+            let b = line.split(line_sep).nth(1);
+            (a.unwrap(), b.unwrap())
+        })
+        .map(|(a, b)| {
+            let a = str::parse::<A>(a);
+            let b = str::parse::<B>(b);
+            (a.unwrap(), b.unwrap())
+        })
         .collect()
 }
 

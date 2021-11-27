@@ -1,5 +1,6 @@
 pub mod common;
 pub mod debug;
+pub mod graph;
 
 pub mod y2019 {
     pub mod d01;
