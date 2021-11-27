@@ -118,19 +118,27 @@ impl IntCode {
         code.read_output()
     }
 
+    fn bin_op(&self, a: i64, op: Op, b: i64) -> i64 {
+        match op {
+            Op::Add => a + b,
+            Op::Mul => a * b,
+            Op::Less => (a < b) as i64,
+            Op::Equal => (a == b) as i64,
+            _ => panic!(
+                "cannot compute unknown binary operation {} {:?} {}",
+                a, op, b
+            ),
+        }
+    }
+
     pub fn step(&mut self) {
         let (op, modes) = self.next_instruction();
         match op {
-            Op::Add | Op::Mul => {
+            Op::Add | Op::Mul | Op::Less | Op::Equal => {
                 let x1 = self.load_next(modes[0]);
                 let x2 = self.load_next(modes[1]);
-                let r = match op {
-                    Op::Add => x1 + x2,
-                    Op::Mul => x1 * x2,
-                    _ => 0,
-                };
                 let pos = self.load_next(1);
-                self.store(pos as usize, r);
+                self.store(pos as usize, self.bin_op(x1, op, x2));
             }
             Op::Input => {
                 let pos = self.load_next(1);
@@ -148,13 +156,6 @@ impl IntCode {
                 } else {
                     self.i_ins += 1;
                 }
-            }
-            Op::Less | Op::Equal => {
-                let x1 = self.load_next(modes[0]);
-                let x2 = self.load_next(modes[1]);
-                let pos = self.load_next(1);
-                let r = (op == Op::Less && x1 < x2) || (op == Op::Equal && x1 == x2);
-                self.store(pos as usize, r as i64);
             }
             Op::End => {
                 self.terminated = true;
