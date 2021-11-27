@@ -12,6 +12,7 @@ function test_solution {
 	correct="correct/${year}/${day}.txt"
 	module="aoc/src/y${year}/d${day}"
 	if [ -f "$correct" -a -d "$module" ]; then
+		(cd util; cargo build --quiet --release)
 		echo "$year $day"
 		output=$(cd util; time cargo run --quiet --release $year $day)
 		expect=$(cat "$correct")

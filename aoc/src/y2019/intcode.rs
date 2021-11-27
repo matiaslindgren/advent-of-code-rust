@@ -1,6 +1,6 @@
 use crate::debug;
 
-pub fn parse_opcode(input: &str) -> (u8, Vec<u8>) {
+fn parse_opcode(input: &str) -> (u8, Vec<u8>) {
     let (modes_str, op_str) = input.split_at(input.len().max(2) - 2);
     let op = op_str.parse::<u8>().expect("failed parsing opcode");
     let mut modes: Vec<u8> = modes_str.chars().map(|x| (x as u8) - 48).rev().collect();
@@ -23,13 +23,13 @@ fn store(mem: &mut [String], i: i64, value: i64) {
     mem[i as usize] = format!("{}", value);
 }
 
-pub fn parse_program(s: &str) -> Vec<String> {
-    s.split(',').map(str::to_owned).collect()
-}
-
-pub fn run(program: &[String], inputs: &[i64]) -> (Vec<String>, Vec<i64>) {
-    let mut mem = program.to_vec();
-    let mut outputs = Vec::<i64>::new();
+pub fn run(program: &str, inputs: &[i64]) -> (String, i64) {
+    let mut mem = program
+        .split(',')
+        .map(str::to_owned)
+        .collect::<Vec<String>>()
+        .to_vec();
+    let mut output = 0;
     let mut i_ins = 0;
     let mut i_inp = 0;
     loop {
@@ -61,14 +61,66 @@ pub fn run(program: &[String], inputs: &[i64]) -> (Vec<String>, Vec<i64>) {
                 store(&mut mem, pos, inp);
             }
             4 => {
-                let x = load(&mem, i_ins, modes[0]);
+                output = load(&mem, i_ins, modes[0]);
                 i_ins += 1;
-                outputs.push(x);
-                debug!("outputs {:?}", outputs);
+                debug!("output {:?}", output);
+            }
+            5 | 6 => {
+                let x1 = load(&mem, i_ins, modes[0]);
+                i_ins += 1;
+                if (op == 5 && x1 != 0) || (op == 6 && x1 == 0) {
+                    let x2 = load(&mem, i_ins, modes[1]);
+                    i_ins = x2 as usize;
+                }
+            }
+            7 | 8 => {
+                let x1 = load(&mem, i_ins, modes[0]);
+                i_ins += 1;
+                let x2 = load(&mem, i_ins, modes[1]);
+                i_ins += 1;
+                let pos = load(&mem, i_ins, modes[2]);
+                i_ins += 1;
+                let r = (op == 7 && x1 < x2) || (op == 8 && x1 == x2);
+                store(&mut mem, pos, r as i64);
             }
             99 => break,
             _ => panic!("unknown op code {}", op),
         };
     }
-    (mem, outputs)
+    (mem[0].to_owned(), output)
+}
+
+#[test]
+fn test_parse_opcode_only() {
+    let op_str_list = vec!["1", "01", "2", "02", "99"];
+    for op_str in op_str_list {
+        let (op, modes) = parse_opcode(op_str);
+        assert_eq!(op, op_str.parse::<u8>().expect("fail"));
+        assert_eq!(modes.len(), 4);
+        for m in modes {
+            assert_eq!(m, 0);
+        }
+    }
+}
+
+#[test]
+fn test_parse_opcode_modes1() {
+    let (op, modes) = parse_opcode("11199");
+    assert_eq!(op, 99);
+    assert_eq!(modes.len(), 4);
+    assert_eq!(modes[0], 1);
+    assert_eq!(modes[1], 1);
+    assert_eq!(modes[2], 1);
+    assert_eq!(modes[3], 0);
+}
+
+#[test]
+fn test_parse_opcode_modes2() {
+    let (op, modes) = parse_opcode("1001");
+    assert_eq!(op, 1);
+    assert_eq!(modes.len(), 4);
+    assert_eq!(modes[0], 0);
+    assert_eq!(modes[1], 1);
+    assert_eq!(modes[2], 0);
+    assert_eq!(modes[3], 0);
 }
