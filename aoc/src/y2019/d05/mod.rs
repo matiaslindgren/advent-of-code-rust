@@ -1,7 +1,16 @@
-use crate::y2019::intcode::IntCode;
+use crate::y2019::intcode;
 
 pub fn main(input: &str) -> String {
-    let a = IntCode::run_until_end(input, &[1]);
-    let b = IntCode::run_until_end(input, &[5]);
+    let a = find_a(input);
+    let b = intcode::run(input, &[5]);
     format!("{} {}", a, b)
+}
+
+pub fn find_a(input: &str) -> i64 {
+    let mut ic = intcode::IntCode::new(input);
+    ic.push_input(1);
+    while !ic.terminated {
+        ic.step();
+    }
+    ic.take_output()
 }

@@ -1,7 +1,9 @@
+use crate::debug;
+use std::collections::VecDeque;
 use std::num::ParseIntError;
 use std::str::FromStr;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 enum Op {
     Add,
     Mul,
@@ -32,28 +34,27 @@ impl FromStr for Op {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct IntCode {
-    inputs: Vec<i64>,
+    inputs: VecDeque<i64>,
     output: Option<i64>,
     pub terminated: bool,
     memory: Vec<String>,
     i_ins: usize,
-    i_inp: usize,
 }
 
 impl IntCode {
-    pub fn new(program: &str, inputs: &[i64]) -> Self {
+    pub fn new(program: &str) -> Self {
         Self {
             memory: program
                 .split(',')
                 .map(str::to_owned)
                 .collect::<Vec<String>>()
                 .to_vec(),
-            inputs: inputs.to_vec(),
+            inputs: [].into(),
             output: None,
             terminated: false,
             i_ins: 0,
-            i_inp: 0,
         }
     }
 
@@ -103,36 +104,48 @@ impl IntCode {
         (op, modes)
     }
 
-    pub fn read_output(&self) -> i64 {
-        match self.output {
+    pub fn push_input(&mut self, input: i64) {
+        self.inputs.push_back(input);
+    }
+
+    fn next_input(&mut self) -> i64 {
+        match self.inputs.pop_front() {
+            Some(input) => input,
+            None => panic!("there are no inputs"),
+        }
+    }
+
+    pub fn take_output(&mut self) -> i64 {
+        match self.output.take() {
             Some(o) => o,
             None => panic!("there is no output"),
         }
     }
 
-    pub fn run_until_end(program: &str, inputs: &[i64]) -> i64 {
-        let mut code = Self::new(program, inputs);
-        while !code.terminated {
-            code.step();
-        }
-        code.read_output()
-    }
-
-    fn bin_op(&self, a: i64, op: Op, b: i64) -> i64 {
+    fn bin_op(&self, x: i64, op: Op, y: i64) -> i64 {
         match op {
-            Op::Add => a + b,
-            Op::Mul => a * b,
-            Op::Less => (a < b) as i64,
-            Op::Equal => (a == b) as i64,
+            Op::Add => x + y,
+            Op::Mul => x * y,
+            Op::Less => (x < y) as i64,
+            Op::Equal => (x == y) as i64,
             _ => panic!(
                 "cannot compute unknown binary operation {} {:?} {}",
-                a, op, b
+                x, op, y
             ),
+        }
+    }
+
+    fn jump_op(&self, op: Op, x: i64) -> bool {
+        match op {
+            Op::JumpTrue => x != 0,
+            Op::JumpFalse => x == 0,
+            _ => panic!("cannot compute unknown jump operation {:?} {}", op, x),
         }
     }
 
     pub fn step(&mut self) {
         let (op, modes) = self.next_instruction();
+        debug!("{:>3}: {:?}", self.i_ins, op);
         match op {
             Op::Add | Op::Mul | Op::Less | Op::Equal => {
                 let x1 = self.load_next(modes[0]);
@@ -142,16 +155,15 @@ impl IntCode {
             }
             Op::Input => {
                 let pos = self.load_next(1);
-                let r = self.inputs[self.i_inp];
-                self.i_inp += 1;
+                let r = self.next_input();
                 self.store(pos as usize, r);
             }
             Op::Output => {
                 self.output = Some(self.load_next(modes[0]));
             }
             Op::JumpTrue | Op::JumpFalse => {
-                let flag = self.load_next(modes[0]) != 0;
-                if (op == Op::JumpTrue && flag) || (op == Op::JumpFalse && !flag) {
+                let x = self.load_next(modes[0]);
+                if self.jump_op(op, x) {
                     self.i_ins = self.load_next(modes[1]) as usize;
                 } else {
                     self.i_ins += 1;
@@ -162,4 +174,19 @@ impl IntCode {
             }
         };
     }
+
+    pub fn run(&mut self) -> i64 {
+        while !self.terminated && self.output.is_none() {
+            self.step();
+        }
+        self.output.take().unwrap_or(0)
+    }
+}
+
+pub fn run(program: &str, inputs: &[i64]) -> i64 {
+    let mut ic = IntCode::new(program);
+    for &inp in inputs {
+        ic.push_input(inp);
+    }
+    ic.run()
 }

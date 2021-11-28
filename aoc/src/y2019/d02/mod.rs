@@ -7,7 +7,7 @@ pub fn main(input: &str) -> String {
 }
 
 fn find_a(input: &str, noun: i64, verb: i64) -> i64 {
-    let mut prog = IntCode::new(input, &[]);
+    let mut prog = IntCode::new(input);
     prog.store(1, noun);
     prog.store(2, verb);
     while !prog.terminated {

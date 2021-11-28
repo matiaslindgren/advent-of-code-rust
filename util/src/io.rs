@@ -123,9 +123,10 @@ pub fn post(year: u32, day: u32, level: u32, answers: &str) {
             correct_dir
         );
     }
+    println!("correct answer");
     let path = correct_dir.join(format!("{:02}.txt", day));
     if !path.exists() {
-        println!("correct answer {:?} does not exist, writing it now", path);
+        println!("writing {:?}", path);
         match fs::write(&path, answers) {
             Ok(_) => (),
             Err(e) => panic!("failed to write correct answer to {:?}: {}", path, e),
