@@ -30,6 +30,8 @@ pub mod y2019 {
     pub mod d24;
     pub mod d25;
     pub mod intcode;
+    #[cfg(test)]
+    pub mod test_intcode;
 }
 
 pub mod y2020 {

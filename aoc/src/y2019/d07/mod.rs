@@ -34,7 +34,7 @@ fn find_b(prog: &str) -> i64 {
             while !amps.iter().all(|a| a.terminated) {
                 for amp in amps.iter_mut() {
                     amp.push_input(signal);
-                    signal = signal.max(amp.run());
+                    signal = amp.run().unwrap_or(signal);
                 }
             }
             max_signal.max(signal)
