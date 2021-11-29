@@ -60,3 +60,10 @@ pub fn decimal_digits(x: &usize) -> Vec<usize> {
     digits.reverse();
     digits
 }
+
+pub fn linspace(a: i64, b: i64, n: usize) -> Vec<i64> {
+    let a = a as f64;
+    let b = b as f64;
+    let delta = (b - a) / (n as f64);
+    (0..n).map(|i| (a + delta * (i as f64)) as i64).collect()
+}
