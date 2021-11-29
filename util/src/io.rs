@@ -110,6 +110,8 @@ pub fn post(year: u32, day: u32, level: u32, answers: &str) {
     if is_wrong {
         eprintln!("{}", feedback);
         return;
+    } else {
+        println!("correct");
     }
     if level == 1 {
         return;
@@ -123,7 +125,6 @@ pub fn post(year: u32, day: u32, level: u32, answers: &str) {
             correct_dir
         );
     }
-    println!("correct answer");
     let path = correct_dir.join(format!("{:02}.txt", day));
     if !path.exists() {
         println!("writing {:?}", path);
