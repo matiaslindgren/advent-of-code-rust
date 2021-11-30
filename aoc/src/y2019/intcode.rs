@@ -198,11 +198,11 @@ impl IntCode {
     }
 
     pub fn dump_memory(&self) -> String {
-        let mut keys: Vec<usize> = self.memory.keys().cloned().collect();
+        let mut keys: Vec<&usize> = self.memory.keys().collect();
         keys.sort_unstable();
         let lines: Vec<String> = keys
             .iter()
-            .map(|k| format!("{:>4}: {}", k, self.memory.get(k).unwrap()))
+            .map(|&k| format!("{:>4}: {}", k, self.memory.get(k).unwrap()))
             .collect();
         lines.join("\n")
     }
