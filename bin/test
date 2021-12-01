@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ue
 
-years=$(ls correct)
+years=$(ls txt/correct)
 if [ -z "$years" ]; then
 	exit 2
 fi
