@@ -10,16 +10,15 @@ pub fn main(input: &str) -> String {
 fn find_a(v: &[i32]) -> i32 {
     v.iter()
         .zip(v[1..].iter())
-        .fold(0, |n, (x1, x2)| n + (x1 < x2) as i32)
+        .fold(0, |n, (x0, x1)| n + (x0 < x1) as i32)
 }
 
 fn find_b(v: &[i32]) -> i32 {
-    let mut n = 0;
-    let mut s1 = v[0] + v[1] + v[2];
-    for i in 3..v.len() {
-        let s2 = s1 - v[i - 3] + v[i];
-        n += (s1 < s2) as i32;
-        s1 = s2;
-    }
-    n
+    let mut s = v[0] + v[1] + v[2];
+    let mut sums: Vec<i32> = vec![s];
+    sums.extend(v.iter().zip(v[3..].iter()).map(|(x0, x3)| {
+        s += -x0 + x3;
+        s
+    }));
+    find_a(&sums)
 }
