@@ -3,6 +3,9 @@ pub mod debug;
 pub mod graph;
 pub mod grid;
 
+#[cfg(test)]
+pub mod test_common;
+
 pub mod y2019 {
     pub mod d01;
     pub mod d02;

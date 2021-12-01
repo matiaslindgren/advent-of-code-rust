@@ -1,16 +1,19 @@
-use crate::common::linspace;
+use crate::common::interpolate_2d_discrete;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::string::ToString;
 
 #[derive(Clone, Default, Debug)]
 pub struct Grid<T> {
-    g: HashMap<i64, T>,
+    g:          HashMap<i64, T>,
     pub height: usize,
-    pub width: usize,
+    pub width:  usize,
 }
 
-impl<'a, T: Default + Clone + PartialEq> Grid<T> {
+impl<'a, T> Grid<T>
+where
+    T: Default + Clone + PartialEq,
+{
     pub fn new(height: usize, width: usize) -> Self {
         Self {
             g: HashMap::<i64, T>::new(),
@@ -46,16 +49,16 @@ impl<'a, T: Default + Clone + PartialEq> Grid<T> {
         }
     }
 
-    pub fn line_to(&self, y1: i64, x1: i64, y2: i64, x2: i64) -> Vec<(i64, i64, T)> {
-        let dy = (y1 - y2).abs();
-        let dx = (x1 - x2).abs();
-        let n = dy.max(dx) as usize;
-        let y_path = linspace(y1, y2, n + 1);
-        let x_path = linspace(x1, x2, n + 1);
-        y_path
-            .iter()
-            .zip(x_path.iter())
-            .map(|(&y, &x)| (y, x, self.get(y, x).unwrap_or(&T::default()).to_owned()))
+    pub fn line_to(
+        &self,
+        p1: (i64, i64),
+        p2: (i64, i64),
+    ) -> Vec<(i64, i64, T)> {
+        let line = interpolate_2d_discrete(p1, p2);
+        line.iter()
+            .map(|&(y, x)| {
+                (y, x, self.get(y, x).unwrap_or(&T::default()).to_owned())
+            })
             .collect()
     }
 
@@ -65,9 +68,9 @@ impl<'a, T: Default + Clone + PartialEq> Grid<T> {
 }
 
 pub struct GridIter<'a, T> {
-    g: &'a Grid<T>,
+    g:     &'a Grid<T>,
     index: Vec<(i64, i64)>,
-    i: usize,
+    i:     usize,
 }
 
 impl<'a, T> GridIter<'a, T> {
@@ -82,7 +85,10 @@ impl<'a, T> GridIter<'a, T> {
     }
 }
 
-impl<'a, T: Default + Clone + PartialEq> Iterator for GridIter<'a, T> {
+impl<'a, T> Iterator for GridIter<'a, T>
+where
+    T: Default + Clone + PartialEq,
+{
     type Item = (i64, i64, T);
 
     fn next(&mut self) -> Option<Self::Item> {

@@ -62,13 +62,45 @@ pub fn decimal_digits(x: &usize) -> Vec<usize> {
     digits
 }
 
-pub fn linspace(a: i64, b: i64, n: usize) -> Vec<i64> {
-    let a = a as f64;
-    let b = b as f64;
-    let delta = (b - a) / ((n - 1) as f64);
-    (0..n)
-        .map(|i| (a + delta * (i as f64)).floor() as i64)
-        .collect()
+pub fn range(a: i64, b: i64, step: usize) -> Vec<i64> {
+    let v: Vec<i64> = if a < b {
+        (a..=b).collect()
+    } else {
+        (b..=a).rev().collect()
+    };
+    v.iter().step_by(step).cloned().collect()
+}
+
+fn gcd(a: i64, b: i64) -> i64 {
+    match b {
+        0 => a,
+        _ => gcd(b, a.rem_euclid(b)),
+    }
+}
+
+pub fn interpolate_2d_discrete(
+    p1: (i64, i64),
+    p2: (i64, i64),
+) -> Vec<(i64, i64)> {
+    let (y1, x1) = p1;
+    let (y2, x2) = p2;
+    let dy = (y2 - y1).abs();
+    let dx = (x2 - x1).abs();
+    let d = gcd(dy, dx) as usize;
+    if d == 0 {
+        return vec![];
+    }
+    let dy = (dy as usize) / d;
+    let dx = (dx as usize) / d;
+    let y = match dy {
+        0 => vec![y1; d + 1],
+        _ => range(y1, y2, dy),
+    };
+    let x = match dx {
+        0 => vec![x1; d + 1],
+        _ => range(x1, x2, dx),
+    };
+    y.iter().cloned().zip(x).collect()
 }
 
 pub fn maze(input: &str) -> grid::Grid<char> {
