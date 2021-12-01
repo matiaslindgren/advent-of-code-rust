@@ -9,7 +9,7 @@ fi
 function test_solution {
 	year=$1
 	day=$(printf '%02d' $2)
-	correct="correct/${year}/${day}.txt"
+	correct="txt/correct/${year}/${day}.txt"
 	module="aoc/src/y${year}/d${day}"
 	if [ -f "$correct" -a -d "$module" ]; then
 		(cd util; cargo build --quiet --release)

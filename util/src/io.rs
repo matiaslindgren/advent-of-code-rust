@@ -70,7 +70,7 @@ fn post_to_aoc(url: &str, level: u32, answer: &str) -> (String, bool) {
 }
 
 pub fn get(year: u32, day: u32) -> String {
-    let input_dir: PathBuf = [&get_workdir(), "..", "input", &format!("{}", year)]
+    let input_dir: PathBuf = [&get_workdir(), "..", "txt", "input", &format!("{}", year)]
         .iter()
         .collect();
     if !input_dir.is_dir() {
@@ -116,7 +116,7 @@ pub fn post(year: u32, day: u32, level: u32, answers: &str) {
     if level == 1 {
         return;
     }
-    let correct_dir: PathBuf = [&get_workdir(), "..", "correct", &format!("{}", year)]
+    let correct_dir: PathBuf = [&get_workdir(), "..", "txt", "correct", &format!("{}", year)]
         .iter()
         .collect();
     if !correct_dir.is_dir() {
