@@ -37,3 +37,7 @@ pub mod y2019 {
 pub mod y2020 {
     pub mod d01;
 }
+
+pub mod y2021 {
+    pub mod d01;
+}

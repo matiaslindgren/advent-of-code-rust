@@ -27,6 +27,7 @@ pub fn solve(input: &str, year: u32, day: u32) -> String {
         (2019, 24) => aoc::y2019::d24::main(input),
         (2019, 25) => aoc::y2019::d25::main(input),
         (2020, 1) => aoc::y2020::d01::main(input),
+        (2021, 1) => aoc::y2021::d01::main(input),
         _ => panic!("year {} day {} not implemented", year, day),
     }
 }
