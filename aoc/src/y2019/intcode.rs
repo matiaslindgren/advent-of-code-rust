@@ -40,23 +40,27 @@ impl FromStr for Op {
 
 #[derive(Debug, Clone)]
 pub struct IntCode {
-    inputs: VecDeque<i64>,
-    pub output: Option<i64>,
+    inputs:         VecDeque<i64>,
+    pub output:     Option<i64>,
     pub terminated: bool,
-    memory: HashMap<usize, String>,
-    i_ins: usize,
-    rel_base: i64,
+    memory:         HashMap<usize, String>,
+    i_ins:          usize,
+    rel_base:       i64,
 }
 
 impl IntCode {
     pub fn new(program: &str) -> Self {
         Self {
-            memory: program.split(',').map(str::to_owned).enumerate().collect(),
-            inputs: [].into(),
-            output: None,
+            memory:     program
+                .split(',')
+                .map(str::to_owned)
+                .enumerate()
+                .collect(),
+            inputs:     [].into(),
+            output:     None,
             terminated: false,
-            i_ins: 0,
-            rel_base: 0,
+            i_ins:      0,
+            rel_base:   0,
         }
     }
 
@@ -65,9 +69,8 @@ impl IntCode {
         T: Default + FromStr,
     {
         match self.memory.get(&i) {
-            Some(x_str) => {
-                str::parse::<T>(x_str).unwrap_or_else(|_| panic!("failed loading {}", x_str))
-            }
+            Some(x_str) => str::parse::<T>(x_str)
+                .unwrap_or_else(|_| panic!("failed loading {}", x_str)),
             None => T::default(),
         }
     }
@@ -107,7 +110,8 @@ impl IntCode {
         self.i_ins += 1;
         let (modes_str, op_str) = instr.split_at(instr.len().max(2) - 2);
         let op = Op::from_str(op_str).unwrap();
-        let mut modes: Vec<u8> = modes_str.chars().map(|x| (x as u8) - 48).rev().collect();
+        let mut modes: Vec<u8> =
+            modes_str.chars().map(|x| (x as u8) - 48).rev().collect();
         modes.resize(3, 0);
         (op, modes)
     }
@@ -153,7 +157,10 @@ impl IntCode {
                 let res = self.bin_op(x1, &op, x2);
                 let pos = self.next_param();
                 self.store_m(pos, res, modes[2]);
-                debug!("    m[{}] := {:?}({}, {}) (= {})", pos, op, x1, x2, res);
+                debug!(
+                    "    m[{}] := {:?}({}, {}) (= {})",
+                    pos, op, x1, x2, res
+                );
             }
             Op::Input => {
                 let pos = self.next_param();
