@@ -111,7 +111,7 @@ pub fn maze(input: &str) -> grid::Grid<char> {
     let mut g = grid::Grid::<char>::new(h, w);
     for (y, line) in lines.iter().enumerate() {
         for (x, ch) in line.chars().enumerate() {
-            g.set(y as i64, x as i64, ch);
+            g.set((y as i64, x as i64), ch);
         }
     }
     g

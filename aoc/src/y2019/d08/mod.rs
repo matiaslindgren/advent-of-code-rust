@@ -39,7 +39,8 @@ fn find_b(v: &[char], size: (usize, usize)) -> String {
                 .map(|layer| layer[y * w + x])
                 .find(|&ch| ch != '2')
                 .unwrap_or('2');
-            grid.set(y as i64, x as i64, if px == '0' { ' ' } else { px });
+            let ch = if px == '0' { ' ' } else { px };
+            grid.set((y as i64, x as i64), ch);
         }
     }
     grid.to_string()
