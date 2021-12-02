@@ -14,8 +14,8 @@ add=$3
 set -u
 
 if [ "$add" != "0" ]; then
-	echo git add aoc/src txt/{input,correct}/${year}/${day}.txt util/src/solutions.rs
+	git add aoc/src txt/{input,correct}/${year}/${day}.txt util/src/solutions.rs
 fi
 
-echo git commit -m "solve $tag"
-echo git tag -a $tag -m "$tag"
+git commit -m "solve $tag"
+git tag -a $tag -m "$tag"
