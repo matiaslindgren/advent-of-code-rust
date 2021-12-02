@@ -1,5 +1,7 @@
 use crate::grid;
+use std::collections::HashMap;
 use std::fmt::Debug;
+use std::hash::Hash;
 use std::str::FromStr;
 
 pub fn items<T>(input: &str, sep: &str) -> Vec<T>
@@ -113,4 +115,36 @@ pub fn maze(input: &str) -> grid::Grid<char> {
         }
     }
     g
+}
+
+#[derive(Clone, Default, Debug)]
+pub struct Counter<T> {
+    g: HashMap<T, usize>,
+}
+
+impl<T> Counter<T>
+where
+    T: Default + Clone + Eq + Hash,
+{
+    pub fn new() -> Self {
+        Self {
+            g: HashMap::<T, usize>::new(),
+        }
+    }
+
+    pub fn get(&self, k: &T) -> usize {
+        match self.g.get(k) {
+            Some(c) => *c,
+            None => 0,
+        }
+    }
+
+    pub fn inc(&mut self, k: &T) -> usize {
+        if !self.g.contains_key(k) {
+            self.g.insert(k.clone(), 0);
+        }
+        let c = self.g.get_mut(k).unwrap();
+        *c += 1;
+        *c
+    }
 }
