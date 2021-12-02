@@ -44,6 +44,10 @@ where
         }
     }
 
+    pub fn count(&self) -> usize {
+        self.g.keys().count()
+    }
+
     pub fn line_to(
         &self,
         p1: (i64, i64),
@@ -55,6 +59,31 @@ where
                 (pos, self.get(pos).unwrap_or(&T::default()).to_owned())
             })
             .collect()
+    }
+
+    pub fn to_sized(&self) -> Grid<T> {
+        let (ymin, xmin, ymax, xmax) = self.g.keys().fold(
+            (i64::MAX, i64::MAX, i64::MIN, i64::MIN),
+            |(ymin, xmin, ymax, xmax), &(y, x)| {
+                (ymin.min(y), xmin.min(x), ymax.max(y), xmax.max(x))
+            },
+        );
+        let width = (xmin - xmax).abs() as usize;
+        let height = (ymin - ymax).abs() as usize;
+        let mut g = Grid::<T>::new(height + 1, width + 1);
+        for ((y, x), v) in self.g.iter() {
+            g.set((y - ymin, x - xmin), v.clone());
+        }
+        g
+    }
+
+    pub fn flip_y(&self) -> Grid<T> {
+        let mut g = Grid::<T>::new(self.height, self.width);
+        for ((y, x), v) in self.iter() {
+            let new_y = self.height as i64 - y - 1;
+            g.set((new_y, x), v.clone());
+        }
+        g
     }
 
     pub fn iter(&self) -> GridIter<T> {
@@ -79,7 +108,7 @@ impl<'a, T> GridIter<'a, T> {
             self.x = 0;
             self.y += 1;
         }
-        if self.y as usize == self.g.height {
+        if self.y as usize == self.g.height || self.g.height == 0 {
             None
         } else {
             Some((self.y, self.x))
