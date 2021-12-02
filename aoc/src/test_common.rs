@@ -17,7 +17,7 @@ fn expect_chars(pos: (i64, i64), chars: &str) {
     let m = common::maze(GRID);
     let path = m.line_to((0, 0), pos);
     assert_eq!(chars.len(), path.len());
-    for (ch, &(y1, x1, ch1)) in chars.chars().zip(path.iter()) {
+    for (ch, &((y1, x1), ch1)) in chars.chars().zip(path.iter()) {
         if ch != '.' {
             assert_eq!(ch1, ch, "({},{}) {}", y1, x1, ch1);
         }

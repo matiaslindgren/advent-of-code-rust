@@ -53,11 +53,11 @@ where
         &self,
         p1: (i64, i64),
         p2: (i64, i64),
-    ) -> Vec<(i64, i64, T)> {
+    ) -> Vec<((i64, i64), T)> {
         let line = interpolate_2d_discrete(p1, p2);
         line.iter()
             .map(|&(y, x)| {
-                (y, x, self.get(y, x).unwrap_or(&T::default()).to_owned())
+                ((y, x), self.get(y, x).unwrap_or(&T::default()).to_owned())
             })
             .collect()
     }
@@ -68,20 +68,27 @@ where
 }
 
 pub struct GridIter<'a, T> {
-    g:     &'a Grid<T>,
-    index: Vec<(i64, i64)>,
-    i:     usize,
+    g: &'a Grid<T>,
+    y: i64,
+    x: i64,
 }
 
 impl<'a, T> GridIter<'a, T> {
     fn new(g: &'a Grid<T>) -> Self {
-        let mut index = Vec::<(i64, i64)>::new();
-        for y in 0..g.height {
-            for x in 0..g.width {
-                index.push((y as i64, x as i64));
-            }
+        Self { g, y: 0, x: -1 }
+    }
+
+    fn next_index(&mut self) -> Option<(i64, i64)> {
+        self.x += 1;
+        if self.x as usize == self.g.width {
+            self.x = 0;
+            self.y += 1;
         }
-        Self { g, index, i: 0 }
+        if self.y as usize == self.g.height {
+            None
+        } else {
+            Some((self.y, self.x))
+        }
     }
 }
 
@@ -89,19 +96,19 @@ impl<'a, T> Iterator for GridIter<'a, T>
 where
     T: Default + Clone + PartialEq,
 {
-    type Item = (i64, i64, T);
+    type Item = ((i64, i64), T);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.i == self.index.len() {
-            return None;
+        match self.next_index() {
+            Some((y, x)) => {
+                let item = match self.g.get(y, x) {
+                    Some(ch) => ch.clone(),
+                    None => T::default(),
+                };
+                Some(((y, x), item))
+            }
+            None => None,
         }
-        let (y, x) = self.index[self.i];
-        self.i += 1;
-        let item = match self.g.get(y, x) {
-            Some(ch) => ch.clone(),
-            None => T::default(),
-        };
-        Some((y, x, item))
     }
 }
 
@@ -111,11 +118,11 @@ where
 {
     fn to_string(&self) -> String {
         let mut s = String::with_capacity(self.height * self.width);
-        for (_, x, ch) in self.iter() {
-            s.push_str(&format!("{}", ch));
-            if x == (self.width as i64) - 1 {
+        for ((y, x), ch) in self.iter() {
+            if y != 0 && x == 0 {
                 s.push('\n');
             }
+            s.push_str(&format!("{}", ch));
         }
         s
     }
