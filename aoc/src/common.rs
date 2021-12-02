@@ -1,4 +1,4 @@
-use crate::grid;
+use crate::grid::{Grid, Point};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -80,10 +80,7 @@ fn gcd(a: i64, b: i64) -> i64 {
     }
 }
 
-pub fn interpolate_2d_discrete(
-    p1: (i64, i64),
-    p2: (i64, i64),
-) -> Vec<(i64, i64)> {
+pub fn interpolate_2d_discrete(p1: Point, p2: Point) -> Vec<Point> {
     let (y1, x1) = p1;
     let (y2, x2) = p2;
     let dy = (y2 - y1).abs();
@@ -105,10 +102,10 @@ pub fn interpolate_2d_discrete(
     y.iter().cloned().zip(x).collect()
 }
 
-pub fn maze(input: &str) -> grid::Grid<char> {
+pub fn maze(input: &str) -> Grid<char> {
     let lines: Vec<String> = items::<String>(input, "\n");
     let (h, w) = (lines.len(), lines[0].len());
-    let mut g = grid::Grid::<char>::new(h, w);
+    let mut g = Grid::<char>::new(h, w);
     for (y, line) in lines.iter().enumerate() {
         for (x, ch) in line.chars().enumerate() {
             g.set((y as i64, x as i64), ch);

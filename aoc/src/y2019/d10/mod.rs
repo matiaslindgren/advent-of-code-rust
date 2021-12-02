@@ -1,5 +1,5 @@
 use crate::common;
-use crate::grid::Grid;
+use crate::grid::{Grid, Point};
 use std::f64::consts::{FRAC_PI_2, TAU};
 
 pub fn main(input: &str) -> String {
@@ -9,13 +9,13 @@ pub fn main(input: &str) -> String {
     format!("{} {}", a, b)
 }
 
-fn view_blocked(m: &Grid<char>, p1: (i64, i64), p2: (i64, i64)) -> bool {
+fn view_blocked(m: &Grid<char>, p1: Point, p2: Point) -> bool {
     m.line_to(p1, p2)
         .iter()
         .any(|&(p, ch)| p != p1 && p != p2 && ch == '#')
 }
 
-fn find_a(m: &Grid<char>) -> ((i64, i64), usize) {
+fn find_a(m: &Grid<char>) -> (Point, usize) {
     let mut best_pos = (0, 0);
     let mut best_count = 0;
     for (p1, _) in m.iter().filter(|&(_, ch)| ch == '#') {
@@ -42,7 +42,7 @@ struct Asteroid {
     exists: bool,
 }
 
-fn find_b(m: &Grid<char>, laser_pos: (i64, i64)) -> i64 {
+fn find_b(m: &Grid<char>, laser_pos: Point) -> i64 {
     let mut asteroids: Vec<Asteroid> = m
         .iter()
         .filter(|&(pos, ch)| pos != laser_pos && ch == '#')

@@ -3,9 +3,11 @@ use std::collections::HashMap;
 use std::fmt::Display;
 use std::string::ToString;
 
+pub type Point = (i64, i64);
+
 #[derive(Clone, Default, Debug)]
 pub struct Grid<T> {
-    g:          HashMap<(i64, i64), T>,
+    g:          HashMap<Point, T>,
     pub height: usize,
     pub width:  usize,
 }
@@ -16,28 +18,28 @@ where
 {
     pub fn new(height: usize, width: usize) -> Self {
         Self {
-            g: HashMap::<(i64, i64), T>::new(),
+            g: HashMap::<Point, T>::new(),
             height,
             width,
         }
     }
 
-    pub fn get(&self, pos: (i64, i64)) -> Option<&T> {
+    pub fn get(&self, pos: Point) -> Option<&T> {
         self.g.get(&pos)
     }
 
-    pub fn set(&mut self, pos: (i64, i64), value: T) {
+    pub fn set(&mut self, pos: Point, value: T) {
         self.g.insert(pos, value);
     }
 
-    pub fn get_default(&mut self, pos: (i64, i64)) -> &T {
+    pub fn get_default(&mut self, pos: Point) -> &T {
         if !self.g.contains_key(&pos) {
             self.set(pos, T::default());
         }
         self.get(pos).unwrap()
     }
 
-    pub fn contains(&self, pos: (i64, i64), value: &T) -> bool {
+    pub fn contains(&self, pos: Point, value: &T) -> bool {
         match self.get(pos) {
             Some(v) => v == value,
             None => false,
@@ -48,11 +50,7 @@ where
         self.g.keys().count()
     }
 
-    pub fn line_to(
-        &self,
-        p1: (i64, i64),
-        p2: (i64, i64),
-    ) -> Vec<((i64, i64), T)> {
+    pub fn line_to(&self, p1: Point, p2: Point) -> Vec<(Point, T)> {
         let line = interpolate_2d_discrete(p1, p2);
         line.iter()
             .map(|&pos| {
@@ -102,7 +100,7 @@ impl<'a, T> GridIter<'a, T> {
         Self { g, y: 0, x: -1 }
     }
 
-    fn next_index(&mut self) -> Option<(i64, i64)> {
+    fn next_index(&mut self) -> Option<Point> {
         self.x += 1;
         if self.x as usize == self.g.width {
             self.x = 0;
@@ -120,7 +118,7 @@ impl<'a, T> Iterator for GridIter<'a, T>
 where
     T: Default + Clone + PartialEq,
 {
-    type Item = ((i64, i64), T);
+    type Item = (Point, T);
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.next_index() {
