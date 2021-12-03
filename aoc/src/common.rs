@@ -144,4 +144,12 @@ where
         *c += 1;
         *c
     }
+
+    pub fn most_common(&self) -> Vec<(T, usize)> {
+        let mut f: Vec<(T, usize)> =
+            self.g.keys().map(|k| (k.clone(), self.get(k))).collect();
+        f.sort_unstable_by_key(|(k, _)| self.get(k));
+        f.reverse();
+        f
+    }
 }
