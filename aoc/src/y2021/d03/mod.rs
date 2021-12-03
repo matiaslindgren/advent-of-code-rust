@@ -8,8 +8,27 @@ pub fn main(input: &str) -> String {
 }
 
 fn find_a(v: &[String]) -> u32 {
-    let (most, least) = common(&v);
+    let (most, least) = common(v);
     multiply_bits(&most, &least)
+}
+
+fn find_b(v: &[String]) -> u32 {
+    let mut o2: Vec<String> = v.to_vec();
+    let mut co2: Vec<String> = v.to_vec();
+    for i in 0..(v[0].len()) {
+        if o2.len() > 1 {
+            let (gamma, _) = common(&o2);
+            o2 = filter_bits(i, &o2, &gamma);
+        }
+        if co2.len() > 1 {
+            let (_, epsilon) = common(&co2);
+            co2 = filter_bits(i, &co2, &epsilon);
+        }
+        if co2.len() == 1 && o2.len() == 1 {
+            break;
+        }
+    }
+    multiply_bits(&o2[0], &co2[0])
 }
 
 fn multiply_bits(gamma: &str, epsilon: &str) -> u32 {
@@ -28,47 +47,19 @@ fn common(v: &[String]) -> (String, String) {
     let v: Vec<(char, char)> = counts
         .iter()
         .map(|c| {
-            let (m, mc) = *c.most_common().first().unwrap();
-            let (l, lc) = *c.most_common().last().unwrap();
-            if mc == lc {
+            let (char_m, freq_m) = *c.most_common().first().unwrap();
+            let (char_l, freq_l) = *c.most_common().last().unwrap();
+            if freq_m == freq_l {
                 ('1', '0')
             } else {
-                (m, l)
+                (char_m, char_l)
             }
         })
         .collect();
-    let most: String = v.iter().map(|(m, _)| m).collect();
-    let least: String = v.iter().map(|(_, l)| l).collect();
-    (most, least)
+    v.iter().cloned().unzip()
 }
 
-fn find_b(v: &[String]) -> u32 {
-    let mut o2: Vec<String> = v.iter().cloned().collect();
-    let mut co2: Vec<String> = v.iter().cloned().collect();
-    for i in 0..(v[0].len()) {
-        if o2.len() > 1 {
-            let (most, _) = common(&o2);
-            let mut res: Vec<String> = vec![];
-            for x in o2 {
-                if x.as_bytes()[i] == most.as_bytes()[i] {
-                    res.push(x.to_string());
-                }
-            }
-            o2 = res;
-        }
-        if co2.len() > 1 {
-            let (_, least) = common(&co2);
-            let mut res: Vec<String> = vec![];
-            for x in co2 {
-                if x.as_bytes()[i] == least.as_bytes()[i] {
-                    res.push(x.to_string());
-                }
-            }
-            co2 = res;
-        }
-        if co2.len() == 1 && o2.len() == 1 {
-            break;
-        }
-    }
-    multiply_bits(&o2[0], &co2[0])
+fn filter_bits(i: usize, v: &[String], bits: &str) -> Vec<String> {
+    let b = bits.as_bytes()[i];
+    v.iter().filter(|x| x.as_bytes()[i] == b).cloned().collect()
 }
