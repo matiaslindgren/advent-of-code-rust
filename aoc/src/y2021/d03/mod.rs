@@ -44,7 +44,7 @@ fn common(v: &[String]) -> (String, String) {
             counts[i].inc(&ch);
         }
     }
-    let v: Vec<(char, char)> = counts
+    counts
         .iter()
         .map(|c| {
             let (char_m, freq_m) = *c.most_common().first().unwrap();
@@ -55,8 +55,7 @@ fn common(v: &[String]) -> (String, String) {
                 (char_m, char_l)
             }
         })
-        .collect();
-    v.iter().cloned().unzip()
+        .unzip()
 }
 
 fn filter_bits(i: usize, v: &[String], bits: &str) -> Vec<String> {
