@@ -1,126 +1,82 @@
 use crate::common;
 use crate::grid::Grid;
+use crate::grid::Point;
 
 pub fn main(input: &str) -> String {
-    let (input, boards) = input.split_once("\n\n").unwrap();
-    let input = common::items::<i32>(input, ",");
-    let boards = common::items::<String>(boards, "\n\n");
-    let boards: Vec<(Grid<i32>, Grid<bool>)> = boards
+    let (numbers, boards) = input.split_once("\n\n").unwrap();
+    let numbers = common::items::<i32>(numbers, ",");
+    let boards: Vec<Grid<Mark>> = common::items::<String>(boards, "\n\n")
         .iter()
-        .map(|b| {
-            let mut g = Grid::<i32>::new(5, 5);
-            for (y, line) in b.trim().lines().enumerate() {
-                for (x, v) in
-                    common::items::<i32>(line.trim(), " ").iter().enumerate()
-                {
-                    g.set((y as i64, x as i64), *v)
-                }
-            }
-            let m = Grid::<bool>::new(5, 5);
-            (g, m)
-        })
+        .map(|s| parse_board(s))
         .collect();
-    let a = find_a(&input, &boards);
-    let b = find_b(&input, &boards);
+    let scores = play(&numbers, &boards);
+    let a = scores.first().unwrap();
+    let b = scores.last().unwrap();
     format!("{} {}", a, b)
 }
 
-fn won(marks: &Grid<bool>) -> bool {
-    let is_marked = |y, x| match marks.get((y, x)) {
-        Some(m) => *m,
+#[derive(Debug, Default, Clone, PartialEq)]
+struct Mark {
+    num:     i32,
+    checked: bool,
+}
+
+fn parse_board(board_str: &str) -> Grid<Mark> {
+    let mut board = Grid::<Mark>::new(5, 5);
+    for (y, line) in board_str.lines().enumerate() {
+        let row = common::items::<i32>(line, " ");
+        for (x, &num) in row.iter().enumerate() {
+            let pos = (y as i64, x as i64);
+            let mark = Mark {
+                num,
+                checked: false,
+            };
+            board.set(pos, mark);
+        }
+    }
+    board
+}
+
+fn won(marks: &Grid<Mark>) -> bool {
+    let checked = |row, col| match marks.get((row, col)) {
+        Some(m) => m.checked,
         None => false,
     };
-    for y in 0..(marks.height as i64) {
-        let mut w = true;
-        for x in 0..(marks.width as i64) {
-            w = w && is_marked(y, x);
-        }
-        if w {
-            return true;
-        }
-    }
-    for x in 0..(marks.height as i64) {
-        let mut w = true;
-        for y in 0..(marks.width as i64) {
-            w = w && is_marked(y, x);
-        }
-        if w {
-            return true;
-        }
-    }
-    false
+    let won_row = (0..5).any(|row| (0..5).all(|col| checked(row, col)));
+    let won_col = (0..5).any(|col| (0..5).all(|row| checked(row, col)));
+    won_row || won_col
 }
 
-fn find_a(input: &[i32], boards: &[(Grid<i32>, Grid<bool>)]) -> i32 {
-    let mut boards = boards.to_vec();
-    let mut winner_idx = None;
-    let mut winner_num = -1;
-    'outer: for &i in input.iter() {
-        for (w, (b, m)) in boards.iter_mut().enumerate() {
-            for (pos, j) in b.iter() {
-                if i == j {
-                    m.set(pos, true);
-                }
-            }
-            if winner_idx.is_none() && won(m) {
-                winner_idx = Some(w);
-                winner_num = i;
-                break 'outer;
-            }
-        }
-    }
-    let (b, m) = &boards[winner_idx.unwrap()];
-    let mut unmarked_sum = 0;
-    for (pos, j) in b.iter() {
-        unmarked_sum += match m.get(pos) {
-            Some(x) => {
-                if *x {
-                    0
-                } else {
-                    j
-                }
-            }
-            None => j,
-        };
-    }
-    winner_num * unmarked_sum
+fn unmarked_sum(board: &Grid<Mark>) -> i32 {
+    board
+        .iter()
+        .filter(|(_, mark)| !mark.checked)
+        .map(|(_, mark)| mark.num)
+        .sum()
 }
 
-fn find_b(input: &[i32], boards: &[(Grid<i32>, Grid<bool>)]) -> i32 {
+fn correct_marks(bingo_num: i32, board: &Grid<Mark>) -> Vec<Point> {
+    board
+        .iter()
+        .filter(|(_, mark)| mark.num == bingo_num)
+        .map(|(pos, _)| pos)
+        .collect()
+}
+
+fn play(numbers: &[i32], boards: &[Grid<Mark>]) -> Vec<i32> {
     let mut boards = boards.to_vec();
-    let mut has_won = vec![false; boards.len()];
-    let mut winner_idx = None;
-    let mut winner_num = -1;
-    'outer: for &i in input.iter() {
-        for (w, (b, m)) in boards.iter_mut().enumerate() {
-            for (pos, j) in b.iter() {
-                if i == j {
-                    m.set(pos, true);
-                }
+    let mut scores = Vec::<i32>::new();
+    for &bingo_num in numbers.iter() {
+        for board in boards.iter_mut() {
+            for &pos in correct_marks(bingo_num, board).iter() {
+                let mut mark = board.get_mut(pos).unwrap();
+                mark.checked = true;
             }
-            if !has_won[w] && won(m) {
-                winner_idx = Some(w);
-                winner_num = i;
-                has_won[w] = true;
-                if has_won.iter().all(|x| *x) {
-                    break 'outer;
-                }
+            if won(board) {
+                scores.push(bingo_num * unmarked_sum(board));
             }
         }
+        boards.retain(|b| !won(b));
     }
-    let (b, m) = &boards[winner_idx.unwrap()];
-    let mut unmarked_sum = 0;
-    for (pos, j) in b.iter() {
-        unmarked_sum += match m.get(pos) {
-            Some(x) => {
-                if *x {
-                    0
-                } else {
-                    j
-                }
-            }
-            None => j,
-        };
-    }
-    winner_num * unmarked_sum
+    scores
 }

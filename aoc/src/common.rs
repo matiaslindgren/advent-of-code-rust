@@ -9,7 +9,7 @@ where
     T: FromStr,
     <T as FromStr>::Err: Debug,
 {
-    input.split(sep).map(|x| str::parse(x).unwrap()).collect()
+    input.split(sep).flat_map(|x| str::parse(x)).collect()
 }
 
 pub fn pairs<A, B>(input: &str, line_sep: &str) -> Vec<(A, B)>

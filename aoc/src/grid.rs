@@ -28,6 +28,10 @@ where
         self.g.get(&pos)
     }
 
+    pub fn get_mut(&mut self, pos: Point) -> Option<&mut T> {
+        self.g.get_mut(&pos)
+    }
+
     pub fn set(&mut self, pos: Point, value: T) {
         self.g.insert(pos, value);
     }
