@@ -40,21 +40,19 @@ fn find_b(input: &str) -> i64 {
         let pos = (y.unwrap(), x.unwrap());
         if pos == (0, -1) {
             score = t.unwrap();
-        } else {
-            let tile = t.unwrap();
-            g.set(pos, tile);
-            match tile {
-                3 => paddle = Some(pos),
-                4 => {
-                    let (_, x_ball) = pos;
-                    let paddle_delta = match paddle {
-                        Some((_, x_paddle)) => (x_ball - x_paddle).signum(),
-                        _ => 0,
-                    };
-                    ic.push_input(paddle_delta);
-                }
-                _ => (),
+            continue;
+        }
+        let tile = t.unwrap();
+        g.set(pos, tile);
+        if tile == 3 {
+            paddle = Some(pos);
+        } else if tile == 4 {
+            let (_, x_ball) = pos;
+            let paddle_dx = match paddle {
+                Some((_, x_paddle)) => (x_ball - x_paddle).signum(),
+                _ => 0,
             };
+            ic.push_input(paddle_dx);
         }
     }
 }
