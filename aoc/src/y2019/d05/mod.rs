@@ -9,7 +9,7 @@ pub fn main(input: &str) -> String {
 pub fn find_a(input: &str) -> i64 {
     let mut ic = intcode::IntCode::new(input);
     ic.push_input(1);
-    while !ic.terminated {
+    while !ic.done {
         ic.step();
     }
     ic.take_output()

@@ -40,27 +40,27 @@ impl FromStr for Op {
 
 #[derive(Debug, Clone)]
 pub struct IntCode {
-    inputs:         VecDeque<i64>,
-    pub output:     Option<i64>,
-    pub terminated: bool,
-    memory:         HashMap<usize, String>,
-    i_ins:          usize,
-    rel_base:       i64,
+    inputs:   VecDeque<i64>,
+    output:   Option<i64>,
+    pub done: bool,
+    memory:   HashMap<usize, String>,
+    i_ins:    usize,
+    rel_base: i64,
 }
 
 impl IntCode {
     pub fn new(program: &str) -> Self {
         Self {
-            memory:     program
+            memory:   program
                 .split(',')
                 .map(str::to_owned)
                 .enumerate()
                 .collect(),
-            inputs:     [].into(),
-            output:     None,
-            terminated: false,
-            i_ins:      0,
-            rel_base:   0,
+            inputs:   [].into(),
+            output:   None,
+            done:     false,
+            i_ins:    0,
+            rel_base: 0,
         }
     }
 
@@ -88,7 +88,6 @@ impl IntCode {
     fn store_m(&mut self, i: i64, x: i64, mode: u8) {
         let pos = match mode {
             0 => i,
-            1 => panic!("illegal store mode 1"),
             2 => self.rel_base + i as i64,
             _ => panic!("unknown store mode {}", mode),
         };
@@ -192,13 +191,13 @@ impl IntCode {
                 debug!("    {}", self.rel_base);
             }
             Op::End => {
-                self.terminated = true;
+                self.done = true;
             }
         };
     }
 
     pub fn run(&mut self) -> Option<i64> {
-        while !self.terminated && self.output.is_none() {
+        while !self.done && self.output.is_none() {
             self.step();
         }
         self.output.take()

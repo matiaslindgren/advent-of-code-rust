@@ -4,7 +4,7 @@ fn assert_outputs(prog: &str, expected_outputs: &[i64]) {
     let mut ic = IntCode::new(prog);
     println!("{}", ic.dump_memory());
     let mut outputs: Vec<i64> = vec![];
-    while !ic.terminated {
+    while !ic.done {
         if let Some(o) = ic.run() {
             outputs.push(o);
         }
@@ -17,7 +17,8 @@ fn assert_outputs(prog: &str, expected_outputs: &[i64]) {
 #[test]
 fn test1() {
     let prog = "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99";
-    let outputs: Vec<i64> = prog.split(',').filter_map(|x| str::parse(x).ok()).collect();
+    let outputs: Vec<i64> =
+        prog.split(',').filter_map(|x| str::parse(x).ok()).collect();
     assert_outputs(prog, &outputs);
 }
 

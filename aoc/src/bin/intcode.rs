@@ -7,7 +7,7 @@ pub fn main() {
     for input in args().skip(2) {
         ic.push_input(input.parse::<i64>().unwrap());
     }
-    while !ic.terminated {
+    while !ic.done {
         if let Some(output) = ic.run() {
             println!("{}", output);
         }

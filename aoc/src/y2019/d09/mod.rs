@@ -10,7 +10,7 @@ fn run(prog: &str, input: i64) -> i64 {
     let mut ic = IntCode::new(prog);
     ic.push_input(input);
     let mut output = 0;
-    while !ic.terminated {
+    while !ic.done {
         if let Some(out) = ic.run() {
             output = out;
         }
