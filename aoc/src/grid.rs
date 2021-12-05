@@ -1,4 +1,4 @@
-use crate::common::interpolate_2d_discrete;
+use crate::math::interpolate_2d_discrete;
 use std::collections::HashMap;
 use std::fmt::Display;
 use std::string::ToString;

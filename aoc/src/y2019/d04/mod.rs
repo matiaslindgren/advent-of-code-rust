@@ -1,11 +1,12 @@
 use crate::common;
+use crate::math::decimal_digits;
 
 pub fn main(input: &str) -> String {
     let v = common::items::<usize>(input, "-");
     let mut a = 0;
     let mut b = 0;
     for x in v[0]..=v[1] {
-        let digits = common::decimal_digits(&x);
+        let digits = decimal_digits(&x);
         let mut prev = digits[0];
         let mut repeats = 1;
         let mut has_two = false;

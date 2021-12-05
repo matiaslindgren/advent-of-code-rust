@@ -2,6 +2,7 @@ pub mod common;
 pub mod debug;
 pub mod graph;
 pub mod grid;
+pub mod math;
 
 #[cfg(test)]
 pub mod test_common;
