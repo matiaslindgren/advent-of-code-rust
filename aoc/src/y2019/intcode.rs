@@ -88,9 +88,9 @@ impl IntCode {
     fn store_m(&mut self, i: i64, x: i64, mode: u8) {
         let pos = match mode {
             0 => i,
-            1 => panic!("illegal load mode 1"),
+            1 => panic!("illegal store mode 1"),
             2 => self.rel_base + i as i64,
-            _ => panic!("unknown load mode {}", mode),
+            _ => panic!("unknown store mode {}", mode),
         };
         self.memory.insert(pos as usize, format!("{}", x));
     }
