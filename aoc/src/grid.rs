@@ -7,7 +7,7 @@ pub type Point = (i64, i64);
 
 #[derive(Clone, Default, Debug)]
 pub struct Grid<T> {
-    g:          HashMap<Point, T>,
+    pub g:      HashMap<Point, T>,
     pub height: usize,
     pub width:  usize,
 }
