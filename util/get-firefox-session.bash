@@ -16,6 +16,16 @@ if [ ! -f "$firefox_cookies" ]; then
 	err "unable to find firefox cookies in '${firefox_dir}'"
 fi
 
+tmpdir="${TMPDIR:-/tmp}"
+
+function cleanup {
+	rm -v "${tmpdir}/cookies.sqlite"
+}
+
+cp -v $firefox_cookies $tmpdir
+trap cleanup EXIT
+firefox_cookies=${tmpdir}/cookies.sqlite
+
 get_session_value="
 	select value from moz_cookies
 	where host = '.adventofcode.com' and name = 'session';
