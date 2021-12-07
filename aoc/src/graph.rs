@@ -1,31 +1,41 @@
 use std::collections::HashMap;
 
-type Key = String;
-type Value = String;
-type Values = Vec<Value>;
+type K = String;
+type V = String;
 
+#[derive(Clone, Default, Debug)]
 pub struct Graph {
-    pub g: HashMap<Key, Values>,
+    pub adj: HashMap<K, Vec<V>>,
+    edges:   HashMap<(K, K), i64>,
 }
 
-impl Graph {
+impl Graph
+where
+    V: Clone,
+{
     pub fn new() -> Self {
-        let g = HashMap::<Key, Values>::new();
-        Self { g }
+        Self {
+            adj:   HashMap::<K, Vec<V>>::new(),
+            edges: HashMap::<(K, K), i64>::new(),
+        }
     }
 
-    pub fn insert(&mut self, key: &str, val: &str) {
-        if !self.g.contains_key(key) {
-            self.g.insert(key.to_owned(), vec![]);
+    pub fn insert(&mut self, k1: &str, k2: &str, w: i64) {
+        if !self.adj.contains_key(k1) {
+            self.adj.insert(k1.to_owned(), vec![]);
         }
-        self.g.get_mut(key).unwrap().push(val.to_owned());
+        let k1_adj = self.adj.get_mut(k1).unwrap();
+        k1_adj.push(k2.to_owned());
+        let edge = (k1.to_owned(), k2.to_owned());
+        self.edges.insert(edge, w);
     }
 
     pub fn count_children(&self, k: &str) -> usize {
-        match self.g.get(k) {
+        match self.adj.get(k) {
             Some(children) => children
                 .iter()
-                .fold(0, |n, c| n + 1 + self.count_children(c)),
+                .map(|c| 1 + self.count_children(c))
+                .sum::<usize>(),
             None => 0,
         }
     }
@@ -34,26 +44,22 @@ impl Graph {
         if src == dst {
             return 0;
         }
-        match self.g.get(src) {
-            Some(children) => children.iter().fold(usize::MAX - 1, |dist, c| {
-                dist.min(1 + self.distance(c, dst))
-            }),
-            None => usize::MAX - 1,
+        match self.adj.get(src) {
+            Some(children) => children
+                .iter()
+                .map(|c| self.distance(c, dst).saturating_add(1))
+                .min()
+                .unwrap_or(usize::MAX),
+            None => usize::MAX,
         }
     }
 }
 
-impl Default for Graph {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl From<&Vec<(Key, Value)>> for Graph {
-    fn from(adjacencies: &Vec<(Key, Value)>) -> Self {
+impl From<&[(K, V)]> for Graph {
+    fn from(adjacencies: &[(K, V)]) -> Self {
         let mut g = Self::new();
-        for (a, b) in adjacencies {
-            g.insert(a, b);
+        for (a, b) in adjacencies.iter() {
+            g.insert(a, b, 0);
         }
         g
     }
