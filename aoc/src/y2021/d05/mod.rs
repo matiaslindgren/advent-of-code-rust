@@ -38,8 +38,8 @@ fn parse_points(input: &str) -> Vec<(Point, Point)> {
         .lines()
         .map(|line| {
             let (l, r) = line.split_once(" -> ").unwrap();
-            let p1 = l.split_once(",").unwrap();
-            let p2 = r.split_once(",").unwrap();
+            let p1 = l.split_once(',').unwrap();
+            let p2 = r.split_once(',').unwrap();
             (parse_point(p1), parse_point(p2))
         })
         .collect()

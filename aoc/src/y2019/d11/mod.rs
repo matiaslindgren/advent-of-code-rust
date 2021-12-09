@@ -20,8 +20,8 @@ fn find_b(input: &str) -> String {
     grid.to_sized()
         .flip_y()
         .to_string()
-        .replace("0", " ")
-        .replace("1", "#")
+        .replace('0', " ")
+        .replace('1', "#")
 }
 
 enum Direction {
