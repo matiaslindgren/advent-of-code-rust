@@ -90,6 +90,16 @@ where
         g
     }
 
+    pub fn adjacent(&self, p: Point) -> Vec<(Point, T)> {
+        let (y, x) = p;
+        let points: Vec<Point> =
+            vec![(y - 1, x), (y + 1, x), (y, x - 1), (y, x + 1)];
+        points
+            .iter()
+            .filter_map(|&p| self.get(p).map(|val| (p, val.clone())))
+            .collect()
+    }
+
     pub fn iter(&self) -> GridIter<T> {
         GridIter::<T>::new(self)
     }
