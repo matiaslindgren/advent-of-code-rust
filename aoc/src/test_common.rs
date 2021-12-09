@@ -1,4 +1,4 @@
-use crate::common;
+use crate::grid::grid2d;
 
 const GRID: &str = concat!(
     "#Iiiiiiiii\n",
@@ -14,7 +14,7 @@ const GRID: &str = concat!(
 );
 
 fn expect_chars(pos: (i64, i64), chars: &str) {
-    let m = common::maze(GRID);
+    let m = grid2d::<char>(GRID);
     let path = m.line_to((0, 0), pos);
     assert_eq!(chars.len(), path.len());
     for (ch, &((y1, x1), ch1)) in chars.chars().zip(path.iter()) {

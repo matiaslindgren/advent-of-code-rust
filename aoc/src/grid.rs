@@ -1,6 +1,8 @@
+use crate::common;
 use crate::math::interpolate_2d_discrete;
 use std::collections::HashMap;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
+use std::str::FromStr;
 use std::string::ToString;
 
 pub type Point = (i64, i64);
@@ -152,4 +154,22 @@ where
         }
         s
     }
+}
+
+pub fn grid2d<T>(input: &str) -> Grid<T>
+where
+    T: Default + Clone + PartialEq + FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    let lines: Vec<String> = common::items::<String>(input, "\n");
+    let (h, w) = (lines.len(), lines[0].len());
+    let mut g = Grid::<T>::new(h, w);
+    for (y, line) in lines.iter().enumerate() {
+        for (x, v) in line.chars().enumerate() {
+            let pos = (y as i64, x as i64);
+            let val = str::parse::<T>(&v.to_string()).unwrap();
+            g.set(pos, val);
+        }
+    }
+    g
 }

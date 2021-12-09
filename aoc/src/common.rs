@@ -1,4 +1,3 @@
-use crate::grid::Grid;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -61,18 +60,6 @@ pub fn range(a: i64, b: i64, step: usize) -> Vec<i64> {
         (b..=a).rev().collect()
     };
     v.iter().step_by(step).cloned().collect()
-}
-
-pub fn maze(input: &str) -> Grid<char> {
-    let lines: Vec<String> = items::<String>(input, "\n");
-    let (h, w) = (lines.len(), lines[0].len());
-    let mut g = Grid::<char>::new(h, w);
-    for (y, line) in lines.iter().enumerate() {
-        for (x, ch) in line.chars().enumerate() {
-            g.set((y as i64, x as i64), ch);
-        }
-    }
-    g
 }
 
 #[derive(Clone, Default, Debug)]

@@ -1,9 +1,8 @@
-use crate::common;
-use crate::grid::{Grid, Point};
+use crate::grid::{grid2d, Grid, Point};
 use std::f64::consts::{FRAC_PI_2, TAU};
 
 pub fn main(input: &str) -> String {
-    let m = common::maze(input);
+    let m = grid2d::<char>(input);
     let (pos, a) = find_a(&m);
     let b = find_b(&m, pos);
     format!("{} {}", a, b)
