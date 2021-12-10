@@ -18,7 +18,7 @@ fn find_a(lines: &[&str]) -> i64 {
         .cloned()
         .filter_map(|l| {
             let (_, invalid) = parse_parens(l);
-            invalid.iter().next().cloned()
+            invalid.get(0).cloned()
         })
         .map(get_score)
         .sum()
