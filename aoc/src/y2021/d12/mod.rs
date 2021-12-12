@@ -29,7 +29,7 @@ fn find(adj: &Adj, is_part_a: bool) -> usize {
     let mut paths = Vec::<Vec<String>>::new();
     find_paths(
         "start",
-        &adj,
+        adj,
         &Counter::new(),
         &mut vec![],
         &mut paths,
@@ -51,7 +51,7 @@ fn find_paths(
         if is_part_a || !is_small_cave(cave) {
             return;
         }
-        if num_visits > 1 || num_small_with_multiple_visits(&visit_count) > 0 {
+        if num_visits > 1 || num_small_with_multiple_visits(visit_count) > 0 {
             return;
         }
     }
@@ -68,7 +68,7 @@ fn find_paths(
         find_paths(
             next_cave,
             adj,
-            &mut visit_count.clone(),
+            &visit_count.clone(),
             &mut path.clone(),
             paths,
             is_part_a,
