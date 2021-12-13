@@ -18,7 +18,7 @@ fn find_b(input: &str) -> String {
     grid.set((0, 0), 1);
     run_robot(input, &mut grid);
     grid.to_sized()
-        .flip_y()
+        .flip(&(1, -1))
         .to_string()
         .replace('0', " ")
         .replace('1', "#")

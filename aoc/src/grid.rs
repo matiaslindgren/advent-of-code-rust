@@ -81,11 +81,16 @@ where
         g
     }
 
-    pub fn flip_y(&self) -> Grid<T> {
+    pub fn flip(&self, axis: &Point) -> Grid<T> {
         let mut g = Grid::<T>::new(self.height, self.width);
         for ((y, x), v) in self.iter() {
-            let new_y = self.height as i64 - y - 1;
-            g.set((new_y, x), v.clone());
+            if axis.1 > 0 {
+                let new_x = self.width as i64 - x - 1;
+                g.set((y, new_x), v.clone());
+            } else {
+                let new_y = self.height as i64 - y - 1;
+                g.set((new_y, x), v.clone());
+            }
         }
         g
     }
