@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::str::FromStr;
 
@@ -40,25 +40,25 @@ impl Grid {
 
     fn min_distance(&self, src: Point, dst: Point) -> usize {
         let mut visited = HashSet::<Point>::new();
-        let mut priority = BinaryHeap::<MinPriority>::new();
+        let mut priority = BinaryHeap::<(Reverse<usize>, Point)>::new();
         let mut dist: HashMap<Point, usize> =
             self.points().iter().map(|&p| (p, usize::MAX)).collect();
-        priority.push(MinPriority::new(src, 0));
+        priority.push((Reverse(0), src));
         dist.insert(src, 0);
         while !priority.is_empty() {
-            let current = priority.pop().unwrap();
-            if visited.contains(&current.pos) {
+            let (_, current) = priority.pop().unwrap();
+            if visited.contains(&current) {
                 continue;
             }
-            visited.insert(current.pos);
-            for &adj in self.adjacent(current.pos).iter() {
-                let src_to_cur = *dist.get(&current.pos).unwrap();
+            visited.insert(current);
+            for &adj in self.adjacent(current).iter() {
+                let src_to_cur = *dist.get(&current).unwrap();
                 let cur_to_adj = self.get(adj);
                 let src_to_adj = dist.get_mut(&adj).unwrap();
                 let src_to_adj_new = src_to_cur.saturating_add(cur_to_adj);
                 if src_to_adj_new < *src_to_adj {
                     *src_to_adj = src_to_adj_new;
-                    priority.push(MinPriority::new(adj, src_to_adj_new));
+                    priority.push((Reverse(src_to_adj_new), adj));
                 }
             }
         }
@@ -105,35 +105,5 @@ impl FromStr for Grid {
             }
         }
         Ok(g)
-    }
-}
-
-#[derive(Eq)]
-struct MinPriority {
-    dist: usize,
-    pos:  Point,
-}
-
-impl MinPriority {
-    fn new(pos: Point, dist: usize) -> Self {
-        Self { dist, pos }
-    }
-}
-
-impl Ord for MinPriority {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.dist.cmp(&other.dist).reverse()
-    }
-}
-
-impl PartialOrd for MinPriority {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl PartialEq for MinPriority {
-    fn eq(&self, other: &Self) -> bool {
-        self.dist == other.dist
     }
 }
