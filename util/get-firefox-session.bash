@@ -19,10 +19,11 @@ fi
 tmpdir="${TMPDIR:-/tmp}"
 
 function cleanup {
+	echo cleanup
 	rm -v "${tmpdir}/cookies.sqlite"
 }
 
-cp -v $firefox_cookies $tmpdir
+cp -v "$firefox_cookies" $tmpdir
 trap cleanup EXIT
 firefox_cookies=${tmpdir}/cookies.sqlite
 
