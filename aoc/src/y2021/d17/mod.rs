@@ -14,7 +14,7 @@ fn parse_target_area(s: &str) -> (Vec2, Vec2) {
 }
 
 fn parse_range(s: &str) -> Vec2 {
-    let (_, s) = s.split_once("=").unwrap();
+    let (_, s) = s.split_once('=').unwrap();
     let (a, b) = s.split_once("..").unwrap();
     (a.parse::<i32>().unwrap(), b.parse::<i32>().unwrap())
 }
