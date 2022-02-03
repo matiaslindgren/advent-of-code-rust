@@ -65,7 +65,7 @@ fn find_splitting(s: &str) -> Option<usize> {
 }
 
 fn explode(s: &str, pair_begin: usize) -> String {
-    let pair_end = pair_begin + (&s[pair_begin..]).find(']').unwrap() + 1;
+    let pair_end = pair_begin + s[pair_begin..].find(']').unwrap() + 1;
     let left = if let Some(l) = find_left(s, pair_begin) {
         let left = parse_number(s, l);
         let x = parse_number(s, pair_begin + 1);
@@ -73,7 +73,7 @@ fn explode(s: &str, pair_begin: usize) -> String {
         let after_left = find_next_non_numeric(s, l);
         [&s[..l], &res, &s[after_left..pair_begin]].join("")
     } else {
-        (&s[..pair_begin]).to_string()
+        s[..pair_begin].to_string()
     };
     let right = if let Some(r) = find_right(s, pair_end) {
         let y_pos = 1 + &s[..pair_end - 1].rfind(not_numeric).unwrap();
@@ -83,13 +83,13 @@ fn explode(s: &str, pair_begin: usize) -> String {
         let after_right = find_next_non_numeric(s, r);
         [&s[pair_end..r], &res, &s[after_right..]].join("")
     } else {
-        (&s[pair_end..]).to_string()
+        s[pair_end..].to_string()
     };
     [&left, "0", &right].join("")
 }
 
 fn find_next_non_numeric(s: &str, i: usize) -> usize {
-    if let Some(end) = (&s[i..]).find(not_numeric) {
+    if let Some(end) = &s[i..].find(not_numeric) {
         i + end
     } else {
         s.len()
@@ -101,13 +101,13 @@ fn not_numeric(c: char) -> bool {
 }
 
 fn find_left(s: &str, pair_begin: usize) -> Option<usize> {
-    let end = 1 + (&s[..pair_begin]).rfind(char::is_numeric)?;
-    let begin = 1 + (&s[..end]).rfind(not_numeric)?;
+    let end = 1 + &s[..pair_begin].rfind(char::is_numeric)?;
+    let begin = 1 + &s[..end].rfind(not_numeric)?;
     Some(begin)
 }
 
 fn find_right(s: &str, pair_end: usize) -> Option<usize> {
-    let begin = (&s[pair_end..]).find(char::is_numeric)?;
+    let begin = &s[pair_end..].find(char::is_numeric)?;
     Some(pair_end + begin)
 }
 
@@ -121,7 +121,7 @@ fn split(s: &str, num_begin: usize) -> String {
 
 fn parse_number(s: &str, i: usize) -> i32 {
     let end = find_next_non_numeric(s, i);
-    (&s[i..end]).parse::<i32>().unwrap()
+    s[i..end].parse::<i32>().unwrap()
 }
 
 fn magnitude(s: &str) -> i32 {

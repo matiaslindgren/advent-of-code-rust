@@ -14,7 +14,7 @@ fn parse_scanners(input: &str) -> Vec<Scanner> {
         .split("\n\n")
         .enumerate()
         .map(|(id, section)| {
-            let (_, beacons) = section.split_once("\n").unwrap();
+            let (_, beacons) = section.split_once('\n').unwrap();
             let beacons = beacons
                 .lines()
                 .map(|line| {
@@ -64,8 +64,7 @@ fn recenter_scanners(scanners: &[Scanner]) -> Vec<Scanner> {
 fn find_a(scanners: &[Scanner]) -> usize {
     let beacons: HashSet<Vec3> = scanners
         .iter()
-        .map(|s| s.beacons.iter())
-        .flatten()
+        .flat_map(|s| s.beacons.iter())
         .cloned()
         .collect();
     beacons.len()
@@ -74,13 +73,12 @@ fn find_a(scanners: &[Scanner]) -> usize {
 fn find_b(scanners: &[Scanner]) -> usize {
     scanners
         .iter()
-        .map(move |s1| {
+        .flat_map(move |s1| {
             scanners.iter().map(move |s2| {
                 let d = s2.center - s1.center;
                 (d.x.abs() + d.y.abs() + d.z.abs()) as usize
             })
         })
-        .flatten()
         .max()
         .unwrap()
 }
@@ -158,15 +156,12 @@ impl Scanner {
     }
 
     fn beacon_pairs(&self) -> impl Iterator<Item = (&Vec3, &Vec3)> {
-        self.beacons
-            .iter()
-            .map(move |b1| {
-                self.beacons
-                    .iter()
-                    .map(move |b2| (b1, b2))
-                    .filter(|(b1, b2)| b1 != b2)
-            })
-            .flatten()
+        self.beacons.iter().flat_map(move |b1| {
+            self.beacons
+                .iter()
+                .map(move |b2| (b1, b2))
+                .filter(|(b1, b2)| b1 != b2)
+        })
     }
 
     fn center_on(&mut self, other: &Self) {
