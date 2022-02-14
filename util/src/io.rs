@@ -36,13 +36,11 @@ fn aoc_url(year: u32, day: u32) -> String {
     format!("{}/{}/day/{}", AOC_URL, year, day)
 }
 
-fn get_from_aoc(url: &str) -> String {
+fn get_from_aoc(url: &str) -> Result<String, reqwest::Error> {
     let client = build_client();
-    let response = match client.get(url).send() {
-        Ok(res) => res,
-        Err(e) => panic!("failed GETting input from {:?}: {}", url, e),
-    };
-    response.text().expect("failed parsing response to GET")
+    let response = client.get(url).send()?;
+    let response = response.error_for_status()?;
+    response.text()
 }
 
 fn parse_feedback(s: &str) -> (String, bool) {
@@ -70,9 +68,10 @@ fn post_to_aoc(url: &str, level: u32, answer: &str) -> (String, bool) {
 }
 
 pub fn get(year: u32, day: u32) -> String {
-    let input_dir: PathBuf = [&get_workdir(), "..", "txt", "input", &format!("{}", year)]
-        .iter()
-        .collect();
+    let input_dir: PathBuf =
+        [&get_workdir(), "..", "txt", "input", &format!("{}", year)]
+            .iter()
+            .collect();
     if !input_dir.is_dir() {
         panic!(
             "input dir {:?} does not exist, it should be created manually",
@@ -83,7 +82,8 @@ pub fn get(year: u32, day: u32) -> String {
     if !path.exists() {
         let url = aoc_url(year, day) + "/input";
         println!("input {} does not exist, fetching from {}", year, url);
-        match fs::write(&path, get_from_aoc(&url)) {
+        let input = get_from_aoc(&url).expect("failed GETting input");
+        match fs::write(&path, input) {
             Ok(_) => (),
             Err(e) => panic!("failed to write input to {:?}: {}", path, e),
         }
@@ -116,9 +116,10 @@ pub fn post(year: u32, day: u32, level: u32, answers: &str) {
     if level == 1 {
         return;
     }
-    let correct_dir: PathBuf = [&get_workdir(), "..", "txt", "correct", &format!("{}", year)]
-        .iter()
-        .collect();
+    let correct_dir: PathBuf =
+        [&get_workdir(), "..", "txt", "correct", &format!("{}", year)]
+            .iter()
+            .collect();
     if !correct_dir.is_dir() {
         panic!(
             "correct answers dir {:?} does not exist, it should be created manually",
@@ -130,7 +131,9 @@ pub fn post(year: u32, day: u32, level: u32, answers: &str) {
         println!("writing {:?}", path);
         match fs::write(&path, answers) {
             Ok(_) => (),
-            Err(e) => panic!("failed to write correct answer to {:?}: {}", path, e),
+            Err(e) => {
+                panic!("failed to write correct answer to {:?}: {}", path, e)
+            }
         }
     }
 }
