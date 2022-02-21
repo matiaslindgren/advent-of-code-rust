@@ -1,3 +1,5 @@
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
 pub mod common;
 pub mod debug;
 pub mod graph;
