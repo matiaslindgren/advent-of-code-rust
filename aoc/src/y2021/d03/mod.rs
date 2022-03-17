@@ -1,20 +1,20 @@
-use crate::common::{items, Counter};
+use std::collections::HashMap;
 
 pub fn main(input: &str) -> String {
-    let v = items::<String>(input, "\n");
+    let v: Vec<&str> = input.lines().collect();
     let a = find_a(&v);
     let b = find_b(&v);
     format!("{} {}", a, b)
 }
 
-fn find_a(v: &[String]) -> u32 {
+fn find_a(v: &[&str]) -> u32 {
     let (gamma, epsilon) = reduce_by_bit_freq(v);
     multiply_bits(&gamma, &epsilon)
 }
 
-fn find_b(v: &[String]) -> u32 {
-    let mut o2: Vec<String> = v.to_vec();
-    let mut co2: Vec<String> = v.to_vec();
+fn find_b(v: &[&str]) -> u32 {
+    let mut o2: Vec<&str> = v.to_vec();
+    let mut co2: Vec<&str> = v.to_vec();
     for i in 0..(v[0].len()) {
         if o2.len() > 1 {
             let (gamma, _) = reduce_by_bit_freq(&o2);
@@ -28,28 +28,35 @@ fn find_b(v: &[String]) -> u32 {
             break;
         }
     }
-    multiply_bits(&o2[0], &co2[0])
+    multiply_bits(o2[0], co2[0])
 }
 
-fn multiply_bits(gamma: &str, epsilon: &str) -> u32 {
+fn multiply_bits<'a>(gamma: &'a str, epsilon: &'a str) -> u32 {
     let g = u32::from_str_radix(gamma, 2).unwrap();
     let e = u32::from_str_radix(epsilon, 2).unwrap();
     g * e
 }
 
-fn reduce_by_bit_freq(v: &[String]) -> (String, String) {
-    let mut counts = vec![Counter::<char>::new(); v[0].len()];
+type Counter = HashMap<char, usize>;
+
+fn reduce_by_bit_freq(v: &[&str]) -> (String, String) {
+    let mut counts = vec![Counter::default(); v[0].len()];
     for x in v {
         for (i, ch) in x.chars().enumerate() {
-            counts[i].inc(&ch);
+            if let Some(n) = counts[i].get_mut(&ch) {
+                *n += 1;
+            } else {
+                counts[i].insert(ch, 1);
+            }
         }
     }
     counts
-        .iter()
+        .into_iter()
         .map(|c| {
-            let freqs = c.most_common();
-            let (char_m, freq_m) = *freqs.first().unwrap();
-            let (char_l, freq_l) = *freqs.last().unwrap();
+            let mut freqs: Vec<(char, usize)> = c.into_iter().collect();
+            freqs.sort_unstable_by_key(|(_, n)| *n);
+            let (char_m, freq_m) = *freqs.last().unwrap();
+            let (char_l, freq_l) = *freqs.first().unwrap();
             if freq_m == freq_l {
                 ('1', '0')
             } else {
@@ -59,7 +66,7 @@ fn reduce_by_bit_freq(v: &[String]) -> (String, String) {
         .unzip()
 }
 
-fn filter_bits(i: usize, v: &[String], bits: &str) -> Vec<String> {
+fn filter_bits<'a>(i: usize, v: &[&'a str], bits: &str) -> Vec<&'a str> {
     let b = bits.as_bytes()[i];
-    v.iter().filter(|x| x.as_bytes()[i] == b).cloned().collect()
+    v.iter().cloned().filter(|x| x.as_bytes()[i] == b).collect()
 }
