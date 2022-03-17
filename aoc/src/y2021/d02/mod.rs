@@ -35,7 +35,7 @@ impl str::FromStr for Op {
             "forward" => Ok(Forward),
             "down" => Ok(Down),
             "up" => Ok(Up),
-            x => Err(format!("unknown up {}", x)),
+            x => Err(format!("unknown op {}", x)),
         }
     }
 }
