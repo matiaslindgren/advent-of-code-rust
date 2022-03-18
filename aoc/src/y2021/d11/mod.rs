@@ -1,60 +1,112 @@
-use crate::grid::{grid2d, Grid, Point};
+use std::str;
 
 pub fn main(input: &str) -> String {
-    let mut grid = grid2d::<i8>(input);
-    let pos: Vec<Point> = grid.iter().map(|(p, _)| p).collect();
+    let mut map = input.parse::<Map>().expect("failed parsing map");
     let mut a = 0;
     let mut b = 0;
-    loop {
-        for &p in pos.iter() {
-            *grid.get_mut(p).unwrap() += 1;
+    let mut num_flashed = 0;
+    while num_flashed < map.map.len() {
+        num_flashed = 0;
+        map.step();
+        while map.ready_to_flash().count() > 0 {
+            map = map.flash_all();
         }
-        while grid.iter().any(|(_, o)| o > 9) {
-            grid = flash_all(&grid);
-        }
-        let mut num_flashed = 0;
-        for &p in pos.iter() {
-            let o = grid.get_mut(p).unwrap();
-            if *o == -1 {
+        for energy in map.map.iter_mut() {
+            if *energy < 0 {
+                *energy = 0;
                 num_flashed += 1;
-                *o = 0;
             }
         }
         a += num_flashed;
         b += 1;
-        if num_flashed == pos.len() {
-            break;
-        }
     }
     format!("{} {}", a, b)
 }
 
-fn adjacent(pos: Point) -> Vec<Point> {
-    let (y, x) = pos;
-    vec![
-        (y - 1, x - 1),
-        (y - 1, x),
-        (y - 1, x + 1),
-        (y, x - 1),
-        (y, x + 1),
-        (y + 1, x - 1),
-        (y + 1, x),
-        (y + 1, x + 1),
-    ]
+#[derive(Clone, Copy, PartialEq, Hash, Eq)]
+struct Vec2 {
+    x: i64,
+    y: i64,
 }
 
-fn flash_all(g_in: &Grid<i8>) -> Grid<i8> {
-    let mut g_out = g_in.clone();
-    let should_flash = g_in.iter().filter(|(_, o)| o > &9);
-    for (p1, _) in should_flash {
-        g_out.set(p1, -1);
-        for &p2 in adjacent(p1).iter() {
-            if let Some(o2) = g_out.get_mut(p2) {
-                if *o2 != -1 {
-                    *o2 += 1;
+#[derive(Clone)]
+struct Map {
+    map:   Vec<i8>,
+    width: i64,
+}
+
+impl str::FromStr for Map {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut map = vec![];
+        let mut width = 0;
+        for line in s.lines() {
+            width = line.len() as i64;
+            for ch in line.chars() {
+                let x = ch
+                    .to_digit(10)
+                    .ok_or(format!("failed parsing digit '{}'", ch))?;
+                map.push(x as i8);
+            }
+        }
+        Ok(Self { map, width })
+    }
+}
+
+impl Map {
+    fn step(&mut self) {
+        for energy in self.map.iter_mut() {
+            *energy += 1;
+        }
+    }
+
+    fn ready_to_flash(&self) -> impl Iterator<Item = usize> + '_ {
+        self.map.iter().enumerate().filter_map(|(i, &energy)| {
+            if energy > 9 {
+                Some(i)
+            } else {
+                None
+            }
+        })
+    }
+
+    fn adjacent(&self, i: usize) -> Vec<usize> {
+        let w = self.width as i64;
+        let h = (self.map.len() as i64) / w;
+        let y = (i as i64) / w;
+        let x = (i as i64) % w;
+        [
+            (y - 1, x - 1),
+            (y - 1, x),
+            (y - 1, x + 1),
+            (y, x - 1),
+            (y, x + 1),
+            (y + 1, x - 1),
+            (y + 1, x),
+            (y + 1, x + 1),
+        ]
+        .iter()
+        .filter_map(|&(y, x)| {
+            if 0 <= x && x < w && 0 <= y && y < h {
+                Some((y * self.width + x) as usize)
+            } else {
+                None
+            }
+        })
+        .collect()
+    }
+
+    fn flash_all(&self) -> Self {
+        let mut next = self.clone();
+        for i in self.ready_to_flash() {
+            next.map[i] = -1;
+            for j in self.adjacent(i).into_iter() {
+                if next.map[j] != -1 {
+                    next.map[j] += 1;
                 }
             }
         }
+        next
     }
-    g_out
 }

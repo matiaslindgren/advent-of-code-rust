@@ -22,7 +22,9 @@ fn parse_outputs(input: &str) -> Vec<String> {
     input
         .lines()
         .map(|line| {
-            let (l, r) = line.split_once(" | ").unwrap();
+            let (l, r) = line
+                .split_once(" | ")
+                .expect("expected line split by ' | '");
             let l = l.split(' ').map(str::to_string);
             let r = r.split(' ').map(str::to_string);
             let e = Entry {

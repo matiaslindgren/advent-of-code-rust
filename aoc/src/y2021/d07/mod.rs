@@ -1,9 +1,10 @@
-use crate::common;
-
 pub fn main(input: &str) -> String {
-    let crabs = common::items::<i32>(input, ",");
-    let min_pos = *crabs.iter().min().unwrap();
-    let max_pos = *crabs.iter().max().unwrap();
+    let crabs: Vec<i32> = input
+        .split(',')
+        .map(|x| x.parse::<i32>().expect("failed parsing number"))
+        .collect();
+    let min_pos = *crabs.iter().min().expect("no crabs");
+    let max_pos = *crabs.iter().max().expect("no crabs");
     let (a, b) =
         (min_pos..=max_pos).fold((i32::MAX, i32::MAX), |(a, b), pos| {
             let deltas = crabs.iter().map(|crab| (crab - pos).abs());

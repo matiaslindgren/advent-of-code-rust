@@ -1,46 +1,108 @@
-use crate::common::range;
-use crate::grid::{Grid, Point};
+use std::collections::HashMap;
+use std::num;
+use std::str;
 
 pub fn main(input: &str) -> String {
-    let points: Vec<(Point, Point)> = parse_points(input);
-    let mut g1 = Grid::<i64>::new(0, 0);
-    let mut g2 = Grid::<i64>::new(0, 0);
-    for &(l, r) in points.iter() {
-        let (x1, y1) = l;
-        let (x2, y2) = r;
-        if x1 == x2 || y1 == y2 {
-            for y in y1.min(y2)..=y1.max(y2) {
-                for x in x1.min(x2)..=x1.max(x2) {
-                    let pos = (y, x);
-                    let c = 1 + *g1.get_default(pos);
-                    g1.set(pos, c);
-                    let c = 1 + *g2.get_default(pos);
-                    g2.set(pos, c);
-                }
-            }
-        } else {
-            for (&y, x) in range(y1, y2, 1).iter().zip(range(x1, x2, 1)) {
-                let c = 1 + *g2.get_default((y, x));
-                g2.set((y, x), c);
-            }
-        }
-    }
-    let a = g1.g.values().filter(|c| **c > 1).count();
-    let b = g2.g.values().filter(|c| **c > 1).count();
+    let points: Vec<(Vec2, Vec2)> = parse_points(input);
+    let a = find_a(&points);
+    let b = find_b(&points);
     format!("{} {}", a, b)
 }
 
-fn parse_points(input: &str) -> Vec<(Point, Point)> {
-    let parse_point = |(x, y): (&str, &str)| {
-        (x.parse::<i64>().unwrap(), y.parse::<i64>().unwrap())
-    };
+fn find_a(points: &[(Vec2, Vec2)]) -> usize {
+    count_overlapping(points).counts()
+}
+
+fn find_b(points: &[(Vec2, Vec2)]) -> usize {
+    let mut overlapping = count_overlapping(points);
+    for (p1, p2) in points.iter().filter(|&(p1, p2)| p1.diagonal_to(p2)) {
+        let y_range = range(p1.y, p2.y);
+        let x_range = range(p1.x, p2.x);
+        for (y, x) in y_range.into_iter().zip(x_range.into_iter()) {
+            overlapping.inc(y, x);
+        }
+    }
+    overlapping.counts()
+}
+
+fn count_overlapping(points: &[(Vec2, Vec2)]) -> OverlapCounter {
+    let mut overlapping = OverlapCounter::default();
+    for (p1, p2) in points.iter().filter(|&(p1, p2)| !p1.diagonal_to(p2)) {
+        let y_min = p1.y.min(p2.y);
+        let y_max = p1.y.max(p2.y);
+        let x_min = p1.x.min(p2.x);
+        let x_max = p1.x.max(p2.x);
+        for y in y_min..=y_max {
+            for x in x_min..=x_max {
+                overlapping.inc(y, x);
+            }
+        }
+    }
+    overlapping
+}
+
+fn range(a: i64, b: i64) -> Vec<i64> {
+    if a < b {
+        (a..=b).collect()
+    } else {
+        (b..=a).rev().collect()
+    }
+}
+
+#[derive(Default, Clone)]
+struct OverlapCounter {
+    counts: HashMap<Vec2, i64>,
+}
+
+impl OverlapCounter {
+    fn inc(&mut self, y: i64, x: i64) {
+        let pos = Vec2 { y, x };
+        if let Some(n) = self.counts.get_mut(&pos) {
+            *n += 1;
+        } else {
+            self.counts.insert(pos, 1);
+        }
+    }
+
+    fn counts(&self) -> usize {
+        self.counts.values().filter(|&&c| c > 1).count()
+    }
+}
+
+fn parse_points(input: &str) -> Vec<(Vec2, Vec2)> {
     input
         .lines()
         .map(|line| {
-            let (l, r) = line.split_once(" -> ").unwrap();
-            let p1 = l.split_once(',').unwrap();
-            let p2 = r.split_once(',').unwrap();
-            (parse_point(p1), parse_point(p2))
+            let (l, r) = line
+                .split_once(" -> ")
+                .expect("points should be separated by ' -> '");
+            let p1 = l.parse::<Vec2>().expect("failed parsing left point");
+            let p2 = r.parse::<Vec2>().expect("failed parsing right point");
+            (p1, p2)
         })
         .collect()
+}
+
+#[derive(Clone, PartialEq, Hash, Eq)]
+struct Vec2 {
+    x: i64,
+    y: i64,
+}
+
+impl str::FromStr for Vec2 {
+    type Err = num::ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (x, y) =
+            s.split_once(',').expect("point should be separated by ','");
+        let x = x.parse::<i64>()?;
+        let y = y.parse::<i64>()?;
+        Ok(Self { x, y })
+    }
+}
+
+impl Vec2 {
+    fn diagonal_to(&self, other: &Self) -> bool {
+        self.x != other.x && self.y != other.y
+    }
 }
