@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::str;
 
-pub fn main<'a>(input: &'a str) -> String {
+pub fn main(input: &str) -> String {
     let adj = Adjacencies::from(input);
     let a = adj.find(true);
     let b = adj.find(false);
